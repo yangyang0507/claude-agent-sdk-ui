@@ -1,0 +1,14 @@
+# IDE
+.claude/
+
+# Node
+node_modules/
+dist/
+
+# Docs
+docs/agent-sdk-docs/
+
+# Env files
+.env
+.env.local
+.env.*.local
