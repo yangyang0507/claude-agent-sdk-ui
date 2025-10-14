@@ -27,10 +27,6 @@
     "prepublishOnly": "npm run build",
     "demo": "node --import tsx/esm examples/integration/ui-renderer-demo.ts",
     "demo:streaming": "node --import tsx/esm examples/streaming/full-session-streaming.tsx",
-    "demo:basic": "node --import tsx/esm examples/ui-test/basic-components.tsx",
-    "demo:full": "node --import tsx/esm examples/ui-test/full-session-mock.tsx",
-    "demo:theme:claude": "node --env-file=.env --import tsx/esm examples/themes/claude-code-demo.ts",
-    "demo:theme:droid": "node --env-file=.env --import tsx/esm examples/themes/droid-demo.ts",
     "test:table": "node --import tsx/esm test/formatters/table.test.ts"
   },
   "keywords": [
