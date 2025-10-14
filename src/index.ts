@@ -49,11 +49,6 @@ export { StreamingRenderer } from './renderer/streaming-renderer.js';
 export { MessageRouter } from './renderer/message-router.js';
 
 // ============================================
-// 格式化器（工具类）
-// ============================================
-export * from './formatters/index.js';
-
-// ============================================
 // 工具函数
 // ============================================
 export { truncateOutput, wrapText } from './utils/string.js';

@@ -51,7 +51,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
 }) => {
   const theme = useTheme();
   const { content } = message.message;
-  const toolOutputSymbol = theme.symbols.toolOutput || '⎿';
+  const toolOutputSymbol = theme.symbols.toolOutput || '└';
 
   return (
     <Box flexDirection="column">

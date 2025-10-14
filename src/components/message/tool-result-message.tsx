@@ -34,7 +34,7 @@ export const ToolResultMessage: React.FC<ToolResultMessageProps> = ({
 }) => {
   const theme = useTheme();
   const { content } = message.message;
-  const toolOutputSymbol = theme.symbols.toolOutput || '⎿';
+  const toolOutputSymbol = theme.symbols.toolOutput || '└';
 
   return (
     <Box flexDirection="column">

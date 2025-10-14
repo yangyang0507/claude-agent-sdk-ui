@@ -35,7 +35,7 @@ export const claudeCodeTheme: Theme = {
     tool: '🔧',
     aiPrefix: '⏺', // Claude Code 特有的圆点符号
     userPrefix: '>',
-    toolOutput: '⎿', // 树状输出符号
+    toolOutput: '└', // 树状输出符号
     expandable: '…', // 折叠展开提示
   },
 

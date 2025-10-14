@@ -100,7 +100,10 @@ export const Box: React.FC<BoxProps> = ({
       <InkBox
         borderStyle={borderStyleMap}
         borderColor={borderColor || (theme?.colors.primary) || 'cyan'}
-        padding={padding}
+        paddingTop={padding}
+        paddingBottom={padding}
+        paddingLeft={padding}
+        paddingRight={padding}
         flexDirection="column"
         width={maxWidth}
       >

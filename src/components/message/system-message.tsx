@@ -37,6 +37,7 @@ export const SystemMessage: React.FC<SystemMessageProps> = ({ message }) => {
         title="📋 Session Info"
         padding={1}
         marginBottom={1}
+        marginRight={1}
       >
         <Box flexDirection="column">
           {/* Session ID */}
@@ -65,14 +66,17 @@ export const SystemMessage: React.FC<SystemMessageProps> = ({ message }) => {
 
           {/* 工具列表 */}
           {message.tools.length > 0 && (
-            <Box flexDirection="column" marginTop={1}>
+            <Box flexDirection="column">
               <Box>
                 <Text dimColor>Tools: </Text>
                 <Text color={theme.colors.success}>
                   {message.tools.length} available
                 </Text>
               </Box>
-              <Text dimColor>{message.tools.join('  •  ')}</Text>
+              <Box marginLeft={1}>
+                <Text dimColor>└ </Text>
+                <Text dimColor>{message.tools.join('  •  ')}</Text>
+              </Box>
             </Box>
           )}
         </Box>

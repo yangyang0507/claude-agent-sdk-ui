@@ -75,7 +75,7 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
   const theme = useTheme();
   const { content } = message.message;
   const thinkingSymbol = theme.symbols?.thinking || theme.symbols.aiPrefix || '…';
-  const toolOutputSymbol = theme.symbols.toolOutput || '⎿';
+  const toolOutputSymbol = theme.symbols.toolOutput || '└';
 
   const [completedBlocks, setCompletedBlocks] = React.useState(0);
 
