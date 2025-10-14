@@ -17,7 +17,7 @@ import {
   summarizeToolInput,
   extractToolDetailLines,
 } from '../../utils/tools.js';
-import { Spinner } from '../ui/spinner.js';
+import { StatusLine } from '../ui/status-line.js';
 import type { ToolExecutionStateMap } from '../../utils/tool-states.js';
 
 export interface AssistantMessageProps {
@@ -51,9 +51,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
 }) => {
   const theme = useTheme();
   const { content } = message.message;
-  const prefix = theme.symbols.aiPrefix || theme.symbols.pending || theme.symbols.bullet || '⏺';
-  const outputPrefix = theme.symbols.toolOutput || '↳';
-  const indent = theme.layout.indent ?? 2;
+  const toolOutputSymbol = theme.symbols.toolOutput || '⎿';
 
   return (
     <Box flexDirection="column">
@@ -61,24 +59,29 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
         // 1. 文本内容
         if (isTextContent(item)) {
           return (
-            <Box key={index} flexDirection="row" alignItems="flex-start" marginBottom={1}>
-              <Text color={theme.colors.primary}>{prefix}</Text>
-              <Box marginLeft={1} flexDirection="column">
+            <StatusLine
+              key={index}
+              marginBottom={1}
+              label={
                 <Markdown theme={theme} highlightCode={true} maxWidth={theme.layout.maxWidth ?? 120}>
                   {item.text}
                 </Markdown>
-              </Box>
-            </Box>
+              }
+            />
           );
         }
 
         // 2. 思考内容
         if (isThinkingContent(item) && showThinking) {
           return (
-            <Box key={index} flexDirection="row" marginBottom={1}>
-              <Text color={theme.colors.dim}>{theme.symbols?.thinking || prefix}</Text>
-              <Text dimColor> {item.thinking}</Text>
-            </Box>
+            <StatusLine
+              key={index}
+              status="active"
+              color={theme.colors.dim}
+              symbol={theme.symbols?.thinking || theme.symbols.aiPrefix || '…'}
+              marginBottom={1}
+              label={<Text dimColor>{item.thinking}</Text>}
+            />
           );
         }
 
@@ -94,33 +97,30 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
           const isError = status === 'error';
           const isPending = status === 'pending';
           const displayText = summary ? `${item.name}(${summary})` : item.name;
+          const tone = isError ? 'error' : isPending ? 'active' : 'success';
 
           return (
-            <Box key={index} flexDirection="column" marginBottom={details.length > 0 ? 1 : 0}>
-              <Box flexDirection="row" alignItems="center">
-                <Text color={isError ? theme.colors.error : theme.colors.primary}>{prefix}</Text>
-                <Text color={isError ? theme.colors.error : theme.colors.text}>
-                  {' '}
-                  {displayText}
-                </Text>
-                {isPending && (
-                  <Box marginLeft={1}>
-                    <Spinner text="" type="dots" color={theme.colors.info} />
-                  </Box>
-                )}
-              </Box>
+            <React.Fragment key={index}>
+              <StatusLine
+                status={tone}
+                spinner={isPending}
+                marginBottom={details.length > 0 ? 0 : 1}
+                label={
+                  <Text color={isError ? theme.colors.error : theme.colors.text}>{displayText}</Text>
+                }
+              />
 
-              {details.length > 0 && (
-                <Box flexDirection="column" marginLeft={indent}>
-                  {details.map((detail, i) => (
-                    <Box key={i} flexDirection="row">
-                      <Text color={theme.colors.dim}>{outputPrefix}</Text>
-                      <Text dimColor> {detail}</Text>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Box>
+              {details.map((detail, detailIndex) => (
+                <StatusLine
+                  key={`${index}-detail-${detailIndex}`}
+                  indentLevel={1}
+                  symbol={toolOutputSymbol}
+                  color={theme.colors.dim}
+                  marginBottom={detailIndex === details.length - 1 ? 1 : 0}
+                  label={<Text dimColor>{detail}</Text>}
+                />
+              ))}
+            </React.Fragment>
           );
         }
 

@@ -9,3 +9,4 @@ export * from './spinner.js';
 export * from './streaming-text.js';
 export * from './markdown.js';
 export * from './table.js';
+export * from './status-line.js';
