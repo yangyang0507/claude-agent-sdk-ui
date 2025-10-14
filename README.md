@@ -2,491 +2,427 @@
 
 <div align="center">
 
-**一行代码实现 Claude Code 级别的 CLI UI 渲染体验**
+**Professional CLI UI for Claude Agent SDK - Beautiful Terminal Experience in One Line of Code**
 
-为 Claude Agent SDK 提供开箱即用的美观 CLI UI 渲染
+Out-of-the-box, beautiful CLI UI rendering for Claude Agent SDK
+
+[![npm version](https://img.shields.io/npm/v/claude-agent-sdk-ui.svg)](https://www.npmjs.com/package/claude-agent-sdk-ui)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+[English](./README.md) | [中文](./README_CN.md)
 
 </div>
 
 ---
 
-## ✨ 特性
+## ✨ Features
 
-- 🎨 **开箱即用** - 零配置即可获得美观的终端 UI
-- 🚀 **极简 API** - 一行代码实现消息渲染
-- 🎭 **主题系统** - 内置暗色/亮色主题,支持完全自定义
-- 📊 **丰富组件** - 工具调用、代码高亮、Markdown 渲染、表格等
-- ⚡ **高性能** - 优化的渲染引擎,流畅处理大量消息
-- 🔧 **可扩展** - 支持自定义工具渲染器和回调
-- 💪 **类型安全** - 完整的 TypeScript 类型定义
+- 🎨 **Zero Config** - Beautiful terminal UI out of the box
+- 🚀 **Minimal API** - Render messages with a single line of code
+- 🎭 **Theme System** - Built-in dark/light themes with full customization
+- 📊 **Rich Display** - Tool calls, code highlighting, Markdown, statistics, and more
+- 🎁 **UI Components** - Professional components: Badge, Box, Divider, Table, Spinner
+- ⚡ **High Performance** - Optimized rendering engine for handling large message volumes
+- 🌊 **Streaming** - Real-time updates with typing effect support
+- 💪 **Type Safe** - Complete TypeScript type definitions
+- 🔧 **Flexible Config** - Rich configuration options for various needs
 
 ---
 
-## 📦 安装
+## 📦 Installation
 
 ```bash
-npm install claude-agent-sdk-ui
+npm install claude-agent-sdk-ui @anthropic-ai/claude-agent-sdk
 ```
 
-**要求:**
+**Requirements:**
 - Node.js >= 18.0.0
-- TypeScript >= 5.0.0
+- @anthropic-ai/claude-agent-sdk >= 0.1.0
 
 ---
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 基础用法
-
-```typescript
-import { renderAgent } from 'claude-agent-sdk-ui';
-
-// 简单消息渲染
-await renderAgent({
-  role: 'assistant',
-  content: '你好!我是 Claude,很高兴为你服务。',
-  timestamp: Date.now()
-});
-```
-
-### 使用 AgentRenderer
+### Simplest Usage - One Line
 
 ```typescript
-import { AgentRenderer } from 'claude-agent-sdk-ui';
+import { query } from '@anthropic-ai/claude-agent-sdk';
+import { renderQuery } from 'claude-agent-sdk-ui';
 
-const renderer = new AgentRenderer({
-  theme: 'dark',
-  showTimestamps: true,
-  showTokenUsage: true,
-  codeHighlight: true
-});
-
-// 渲染标题
-renderer.renderHeader('🤖 Claude Agent');
-
-// 渲染消息
-await renderer.render({
-  role: 'user',
-  content: '帮我分析这个项目',
-  timestamp: Date.now()
-});
-
-// 渲染分隔线
-renderer.renderDivider();
-
-// 渲染统计信息
-renderer.renderFooter({
-  duration: 2300,
-  tokens: 1234
-});
+// 🎉 Super simple! One line does it all
+await renderQuery(query({ prompt: 'Hello, Claude!' }));
 ```
 
----
-
-## 📚 完整示例
-
-### 示例 1: 工具调用展示
+### Message-by-Message Rendering (Optional)
 
 ```typescript
-import { AgentRenderer } from 'claude-agent-sdk-ui';
+import { render } from 'claude-agent-sdk-ui';
 
-const renderer = new AgentRenderer();
-
-// 工具调用消息
-await renderer.render({
-  role: 'assistant',
-  content: [
-    {
-      type: 'tool_use',
-      id: 'tool_1',
-      name: 'Read',
-      input: {
-        file_path: './package.json'
-      }
-    }
-  ],
-  timestamp: Date.now()
-});
-
-// 工具结果
-await renderer.render({
-  role: 'assistant',
-  content: [
-    {
-      type: 'tool_result',
-      tool_use_id: 'tool_1',
-      output: '{ "name": "my-project", "version": "1.0.0" }'
-    }
-  ],
-  timestamp: Date.now()
-});
-```
-
-**输出效果:**
-```
-┌─ 🔧 工具调用: Read
-│  file_path: "./package.json"
-│  ⏱️  执行中...
-└─ ✓ 完成 (245ms)
-   ├─ 读取 5 行
-   └─ 文件大小: 234 B
-```
-
-### 示例 2: Markdown 渲染
-
-```typescript
-await renderer.render({
-  role: 'assistant',
-  content: `
-## 分析结果
-
-这是一个 **TypeScript** 项目:
-
-\`\`\`typescript
-export function hello() {
-  return "world";
+// If you need to process each message
+for await (const message of query({ prompt: 'Hello!' })) {
+  // Add custom logic here
+  await render(message);
 }
-\`\`\`
-
-**主要特点:**
-- ✅ 类型安全
-- ✅ 代码清晰
-- ✅ 结构良好
-  `,
-  timestamp: Date.now()
-});
 ```
 
-### 示例 3: 自定义主题
+### Advanced Usage - Custom Configuration
 
 ```typescript
-const customTheme = {
+import { query } from '@anthropic-ai/claude-agent-sdk';
+import { renderQuery } from 'claude-agent-sdk-ui';
+
+await renderQuery(
+  query({
+    prompt: 'Analyze the file structure of current directory',
+    options: {
+      maxTurns: 10,
+      allowedTools: ['Read', 'Grep', 'Glob'],
+    }
+  }),
+  {
+    theme: 'dark',               // Theme selection
+    showTimestamps: true,        // Show timestamps
+    showTokenUsage: true,        // Show token statistics (disabled by default)
+    showThinking: true,          // Show thinking process
+    showToolDetails: true,       // Show tool details
+    showToolContent: true,       // Reveal raw tool content fields (hidden by default)
+    maxOutputLines: 50,          // Max output lines
+  }
+);
+```
+
+---
+
+## 🎨 Enhanced UI Preview
+
+### Session Initialization (Enhanced)
+
+```
+═══════════ 🚀 SESSION INITIALIZED ═══════════
+
+╭───────────────── 📋 Session Info ─────────────────╮
+│ Session ID: 628c0fcf                              │
+│ Model: claude-sonnet-4                            │
+│ Working Dir: /Users/username/project              │
+│ Permission: [ℹ DEFAULT]                          │
+╰───────────────────────────────────────────────────╯
+
+[✓ SUCCESS] 15 TOOLS AVAILABLE
+  🔧 Bash  🔧 Read  🔧 Edit  🔧 Write  ...
+```
+
+### Tool Execution (Enhanced)
+
+```
+[ℹ INFO] 🔧 Read
+
+┌───────────────────────────────────────────────┐
+│ {                                             │
+│   "path": "package.json"                      │
+│ }                                             │
+└───────────────────────────────────────────────┘
+
+⠋ Executing Read...  ← Dynamic spinner (TTY)
+
+[✓ SUCCESS] RESULT: SUCCESS (0.5s)
+
+┌───────────────────────────────────────────────┐
+│ {                                             │
+│   "name": "my-project",                       │
+│   "version": "1.0.0",                         │
+│   ...                                         │
+│ }                                             │
+└───────────────────────────────────────────────┘
+```
+
+### Execution Complete (Enhanced)
+
+```
+═════════ ✅ EXECUTION COMPLETE ══════════
+
+[ℹ INFO] EXECUTION STATS
+
+┌──────────────────┬────────────────────────┐
+│ Metric           │                  Value │
+├──────────────────┼────────────────────────┤
+│ Status           │             ✅ Success │
+│ Duration         │                  22.2s │
+│ Turns            │                     22 │
+│ Total Cost       │               $0.0827  │
+└──────────────────┴────────────────────────┘
+
+[ℹ TOKEN USAGE]
+
+┌──────────────────┬────────────────────────┐
+│ Type             │                  Count │
+├──────────────────┼────────────────────────┤
+│ Input Tokens     │                  8,117 │
+│ Output Tokens    │                    984 │
+│ Cache Read       │                112,928 │
+└──────────────────┴────────────────────────┘
+```
+
+---
+
+## 📚 Documentation
+
+### User Documentation
+
+- 🚀 [UI Quick Start](./docs/UI_QUICK_START.md) - 5-minute guide to UI framework (Recommended)
+- 📖 [Getting Started](./docs/getting-started.md) - Basic usage guide
+- ✨ [UI Enhancements](./docs/ui-enhancements.md) - Learn about the new visual experience
+- 🎬 [Streaming](./docs/streaming.md) - Real-time Claude responses
+- ⌨️ [Typing Effect](./docs/typing-effect.md) - Elegant character-by-character output
+- 🎨 [UI Components](./docs/ui-components.md) - 5 ready-to-use terminal components
+- 🔧 [UI Renderer Guide](./docs/UI_RENDERER.md) - Complete UI renderer documentation
+- 📋 [UI Migration Guide](./docs/UI_MIGRATION_GUIDE.md) - Migrate from legacy to UI
+
+### Developer Documentation
+
+- 🔧 [Development Guide](./dev/DEVELOPMENT.md) - Technical implementation and architecture
+- 📋 [TODO](./dev/TODO.md) - Project progress and plans
+- 🧪 [Testing Guide](./dev/TESTING.md) - Testing instructions and troubleshooting
+
+---
+
+## 🎯 Examples
+
+```bash
+# UI framework demo (Recommended)
+npm run demo:ui
+
+# UI streaming demo
+npm run demo:ui:streaming
+
+# Basic components demo
+npm run demo:basic
+
+# Full session demo
+npm run demo:full
+
+# Theme demos
+npm run demo:theme:claude
+npm run demo:theme:droid
+```
+
+---
+
+## ⚙️ Configuration Options
+
+### RendererOptions
+
+```typescript
+interface RendererOptions {
+  // Theme configuration
+  theme?: 'dark' | 'light' | Theme;
+
+  // Display options
+  showTimestamps?: boolean;      // Show timestamps (default: false)
+  showTokenUsage?: boolean;      // Show token usage (default: false)
+  showThinking?: boolean;        // Show thinking process (default: false)
+  showToolDetails?: boolean;     // Show tool details (default: true)
+  showToolContent?: boolean;     // Show raw content fields in tool params (default: false)
+
+  // Format options
+  compact?: boolean;             // Compact mode (default: false)
+  maxOutputLines?: number;       // Max output lines (default: 100)
+  maxWidth?: number;             // Max width (default: 120)
+
+  // Advanced options
+  codeHighlight?: boolean;       // Code highlighting (default: true)
+  streaming?: boolean;           // Streaming rendering (default: false)
+  typingEffect?: boolean;        // Typing effect (default: false)
+  typingSpeed?: number;          // Typing speed (default: 20ms)
+}
+```
+
+---
+
+## 🎭 Theme System
+
+### Built-in Themes
+
+```typescript
+import { darkTheme, lightTheme } from 'claude-agent-sdk-ui';
+
+// Use dark theme (default)
+const renderer = new Renderer({ theme: 'dark' });
+
+// Use light theme
+const renderer = new Renderer({ theme: 'light' });
+```
+
+### Custom Theme
+
+```typescript
+import { createTheme } from 'claude-agent-sdk-ui';
+
+const myTheme = createTheme({
+  name: 'my-theme',
   colors: {
     primary: '#FF6B6B',
-    secondary: '#4ECDC4',
-    success: '#95E1D3',
-    warning: '#FFE66D',
+    success: '#51CF66',
     error: '#FF6B6B',
-    info: '#48B5FF',
-    text: '#F7FFF7',
-    dim: '#AAA'
+    warning: '#FFD93D',
+    info: '#4DABF7',
+    text: '#F8F9FA',
+    dim: '#868E96',
   },
-  symbols: {
-    success: '✓',
-    error: '✗',
-    warning: '⚠',
-    info: 'ℹ',
-    pending: '○',
-    spinner: ['◐', '◓', '◑', '◒']
-  },
-  borders: {
-    style: 'round',
-    color: '#FF6B6B'
-  }
-};
-
-const renderer = new AgentRenderer({ theme: customTheme });
-```
-
-### 示例 4: 自定义工具渲染器
-
-```typescript
-const renderer = new AgentRenderer({
-  customRenderers: {
-    // 自定义 Read 工具的显示
-    'Read': (data) => {
-      return `📖 读取文件: ${data.input.file_path}`;
-    },
-
-    // 自定义 Bash 命令的显示
-    'Bash': (data) => {
-      return `💻 执行命令: ${data.input.command}`;
-    }
-  },
-
-  // 回调函数
-  onToolStart: (tool) => {
-    console.log(`[开始] ${tool}`);
-  },
-
-  onToolEnd: (tool, result) => {
-    console.log(`[完成] ${tool}`);
-  }
 });
 ```
 
 ---
 
-## 🎨 主题系统
+## 📖 API Documentation
 
-### 内置主题
-
-```typescript
-import { darkTheme, lightTheme, defaultTheme } from 'claude-agent-sdk-ui';
-
-// 使用暗色主题
-const renderer = new AgentRenderer({ theme: darkTheme });
-
-// 使用亮色主题
-const renderer = new AgentRenderer({ theme: lightTheme });
-
-// 使用默认主题
-const renderer = new AgentRenderer({ theme: defaultTheme });
-```
-
-### 主题配置
+### Main Exports
 
 ```typescript
-interface ThemeConfig {
-  colors: {
-    primary: string;      // 主色调
-    secondary: string;    // 次要色
-    success: string;      // 成功色
-    warning: string;      // 警告色
-    error: string;        // 错误色
-    info: string;         // 信息色
-    text: string;         // 文本色
-    dim: string;          // 暗淡色
-  };
-  symbols: {
-    success: string;      // 成功符号
-    error: string;        // 错误符号
-    warning: string;      // 警告符号
-    info: string;         // 信息符号
-    pending: string;      // 等待符号
-    spinner: string[];    // 加载动画帧
-  };
-  borders: {
-    style: 'single' | 'double' | 'round' | 'bold' | 'none';
-    color: string;
-  };
+// Functions
+export function renderQuery(queryGenerator, options?): Promise<void>;
+export function render(message, options?): Promise<void>;
+export function createRenderer(options?): Renderer;
+export function createTheme(options): Theme;
+export function getTheme(input?): Theme;
+
+// Classes
+export class Renderer {
+  constructor(options?);
+  render(message): Promise<void>;
+  getState(): RendererState;
+  reset(): void;
 }
+
+// Themes
+export { darkTheme, lightTheme };
+
+// UI Components
+export { Box, Badge, Divider, Spinner, Progress };
+export { createTableFormatter } from './formatters/table.js';
+
+// Types
+export type { SDKMessage, RendererOptions, Theme, ... };
 ```
 
 ---
 
-## ⚙️ 配置选项
+## 💡 UI Components
 
-### RenderOptions
-
-```typescript
-interface RenderOptions {
-  // 显示选项
-  theme?: 'dark' | 'light' | ThemeConfig;
-  showTimestamps?: boolean;      // 显示时间戳
-  showTokenUsage?: boolean;      // 显示 Token 使用量
-  showToolDetails?: boolean;     // 显示工具详情
-  compactMode?: boolean;         // 紧凑模式
-
-  // 流式选项
-  streaming?: boolean;           // 流式渲染
-  typingEffect?: boolean;        // 打字机效果
-  typingSpeed?: number;          // 打字速度 (ms)
-
-  // 交互选项
-  interactive?: boolean;         // 交互模式
-  confirmActions?: boolean;      // 确认操作
-
-  // 格式化
-  codeHighlight?: boolean;       // 代码高亮
-  markdownRendering?: boolean;   // Markdown 渲染
-  maxWidth?: number;             // 最大宽度
-
-  // 自定义渲染器
-  customRenderers?: {
-    [toolName: string]: (data: any) => string;
-  };
-
-  // 回调函数
-  onToolStart?: (tool: string) => void;
-  onToolEnd?: (tool: string, result: any) => void;
-  onError?: (error: Error) => void;
-}
-```
-
----
-
-## 📖 API 文档
-
-### `renderAgent(message, options?)`
-
-简单的消息渲染函数,适合快速使用。
+Use the built-in UI components directly:
 
 ```typescript
-await renderAgent(message, {
-  theme: 'dark',
-  showTimestamps: true
-});
-```
+import { Box, Badge, Divider, createTableFormatter } from 'claude-agent-sdk-ui';
 
-### `AgentRenderer`
+// Badge
+console.log(Badge.success('COMPLETED'));
+console.log(Badge.error('FAILED'));
+console.log(Badge.info('PROCESSING'));
 
-完整的渲染器类,提供更多控制和功能。
+// Box
+const box = new Box({ borderStyle: 'round', padding: 1 });
+console.log(box.render('Important message'));
 
-#### 方法
+// Divider
+const divider = new Divider({ style: 'double', text: 'SECTION' });
+console.log(divider.render());
 
-- **`render(message)`** - 渲染一条消息
-- **`renderHeader(text)`** - 渲染标题
-- **`renderDivider()`** - 渲染分隔线
-- **`renderFooter(stats)`** - 渲染页脚统计信息
-
-```typescript
-const renderer = new AgentRenderer(options);
-
-await renderer.render(message);
-renderer.renderHeader('标题');
-renderer.renderDivider();
-renderer.renderFooter({ duration: 1000, tokens: 500 });
-```
-
----
-
-## 🛠️ 工具函数
-
-### 格式化工具
-
-```typescript
-import {
-  formatBytes,
-  formatDuration,
-  formatNumber,
-  highlightCode,
-  renderMarkdown
-} from 'claude-agent-sdk-ui';
-
-// 格式化字节
-formatBytes(1234567); // "1.18 MB"
-
-// 格式化时长
-formatDuration(123456); // "2.1m"
-
-// 格式化数字
-formatNumber(1234567); // "1,234,567"
-
-// 代码高亮
-const highlighted = highlightCode(code, 'typescript');
-
-// Markdown 渲染
-const rendered = renderMarkdown('**Hello** _World_');
-```
-
----
-
-## 🎯 支持的消息类型
-
-### 文本消息
-
-```typescript
-{
-  role: 'user' | 'assistant' | 'system',
-  content: string,
-  timestamp?: number
-}
-```
-
-### 复合消息
-
-```typescript
-{
-  role: 'assistant',
-  content: [
-    { type: 'text', text: '...' },
-    { type: 'tool_use', id: '...', name: '...', input: {...} },
-    { type: 'tool_result', tool_use_id: '...', output: '...' },
-    { type: 'thinking', text: '...' }
+// Table
+const table = createTableFormatter({
+  columns: [
+    { header: 'Name', key: 'name', width: 20 },
+    { header: 'Value', key: 'value', width: 30 },
   ],
-  timestamp?: number
-}
+});
+console.log(table.render(data, theme));
 ```
 
 ---
 
-## 📝 运行示例
+## 🧪 Development
 
-项目包含 3 个完整示例:
+### Setup
 
 ```bash
-# 基础示例
-npm run example:basic
+# Install dependencies
+npm install
 
-# 高级示例
-npm run example:advanced
+# Development mode (watch files)
+npm run dev
 
-# 主题示例
-npm run example:themes
+# Build
+npm run build
+
+# Type check
+npm run typecheck
+
+# Lint
+npm run lint
+
+# Format
+npm run format
 ```
 
-在 `package.json` 中添加脚本:
-
-```json
-{
-  "scripts": {
-    "example:basic": "tsx examples/basic.ts",
-    "example:advanced": "tsx examples/advanced.ts",
-    "example:themes": "tsx examples/themes.ts"
-  }
-}
-```
-
----
-
-## 🏗️ 项目结构
-
-```
-claude-agent-ui/
-├── src/
-│   ├── core/              # 核心渲染引擎
-│   ├── components/        # UI 组件
-│   ├── formatters/        # 格式化工具
-│   ├── themes/            # 主题系统
-│   ├── utils/             # 工具函数
-│   └── types.ts           # TypeScript 类型
-├── examples/              # 示例代码
-├── tests/                 # 测试文件
-└── docs/                  # 文档
-```
-
----
-
-## 🧪 测试
+### Testing
 
 ```bash
-# 运行测试
+# Run tests
 npm test
 
-# 运行测试 UI
+# Run test UI
 npm run test:ui
 
-# 类型检查
-npm run typecheck
+# Run UI demos
+npm run demo:ui
+npm run demo:ui:streaming
+npm run demo:basic
+
+# Run table formatter test
+npm run test:table
 ```
 
 ---
 
-## 🤝 贡献
+## 🤝 Contributing
 
-欢迎贡献! 请查看 [AGENT_UI_DESIGN.md](./AGENT_UI_DESIGN.md) 了解项目设计和实施计划。
+Contributions are welcome! Please check out:
+
+- 📖 [Development Guide](./dev/DEVELOPMENT.md) - Detailed technical design and architecture
+- 🐛 [Issue Tracker](https://github.com/yangyang0507/claude-agent-sdk-ui/issues)
+- 💡 [Feature Requests](https://github.com/yangyang0507/claude-agent-sdk-ui/issues/new)
+
+### Contributing Steps
+
+1. Fork this repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
-## 📄 许可证
+## 📄 License
 
-MIT License - 详见 [LICENSE](./LICENSE)
+MIT License © 2025
 
 ---
 
-## 🔗 相关链接
+## 🔗 Links
 
-- [Claude Agent SDK](https://github.com/anthropics/claude-agent-sdk)
-- [Claude Code 文档](https://docs.anthropic.com/claude-code)
-- [问题反馈](https://github.com/your-repo/issues)
+- 📚 [Claude Agent SDK - TypeScript](https://docs.anthropic.com/en/api/agent-sdk/typescript)
+- 📘 [Claude Agent SDK - Python](https://docs.anthropic.com/en/api/agent-sdk/python)
+- 🌐 [Claude API Documentation](https://docs.anthropic.com/)
+- 💬 [GitHub Issues](https://github.com/yangyang0507/claude-agent-sdk-ui/issues)
+- 📦 [npm Package](https://www.npmjs.com/package/claude-agent-sdk-ui)
 
 ---
 
 <div align="center">
 
-**让每个开发者都能轻松构建美观、专业的 AI Agent CLI 应用!** 🚀
+**Make every developer easily build beautiful, professional AI Agent CLI applications!** 🚀
 
-Made with ❤️ by the Claude Agent SDK Community
+Made with ❤️ for the Claude Agent SDK Community
+
+[⭐ Star us](https://github.com/yangyang0507/claude-agent-sdk-ui) | [📖 Documentation](./docs/UI_QUICK_START.md) | [🐛 Report Issues](https://github.com/yangyang0507/claude-agent-sdk-ui/issues)
 
 </div>
