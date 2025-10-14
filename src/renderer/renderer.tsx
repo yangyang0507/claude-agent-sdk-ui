@@ -8,6 +8,7 @@ import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import type { RendererOptions } from '../types/renderer.js';
 import { ThemeProvider } from '../hooks/use-theme.js';
 import { MessageRouter } from './message-router.js';
+import { deriveToolExecutionState } from '../utils/tool-states.js';
 
 interface UIRendererAppProps {
   messages: SDKMessage[];
@@ -18,11 +19,18 @@ interface UIRendererAppProps {
  * 渲染器主应用组件
  */
 const UIRendererApp: React.FC<UIRendererAppProps> = ({ messages, options }) => {
+  const toolStates = React.useMemo(() => deriveToolExecutionState(messages), [messages]);
+
   return (
     <ThemeProvider theme={options.theme}>
       <Box flexDirection="column">
         {messages.map((message, index) => (
-          <MessageRouter key={index} message={message} options={options} />
+          <MessageRouter
+            key={index}
+            message={message}
+            options={options}
+            toolStates={toolStates}
+          />
         ))}
       </Box>
     </ThemeProvider>

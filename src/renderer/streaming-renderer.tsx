@@ -19,6 +19,7 @@ import {
   isUserMessage,
   isResultMessage,
 } from '../types/messages.js';
+import { deriveToolExecutionState } from '../utils/tool-states.js';
 
 interface StreamingRendererAppProps {
   messages: SDKMessage[];
@@ -36,6 +37,8 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
   currentStreamingIndex,
   onStreamComplete,
 }) => {
+  const toolStates = React.useMemo(() => deriveToolExecutionState(messages), [messages]);
+
   return (
     <ThemeProvider theme={options.theme}>
       <Box flexDirection="column">
@@ -60,6 +63,7 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
                   typingSpeed={options.typingSpeed}
                   streamingEnabled={options.typingEffect}
                   onStreamComplete={onStreamComplete}
+                  toolStates={toolStates}
                 />
               );
             }
@@ -72,6 +76,7 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
                 showThinking={options.showThinking}
                 showToolDetails={options.showToolDetails}
                 streamingEnabled={false}
+                toolStates={toolStates}
               />
             );
           }

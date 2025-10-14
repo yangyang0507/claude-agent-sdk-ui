@@ -30,6 +30,8 @@ export const ToolResultMessage: React.FC<ToolResultMessageProps> = ({
 }) => {
   const theme = useTheme();
   const { content } = message.message;
+  const prefix = theme.symbols.toolOutput || '⎿';
+  const indent = theme.layout.indent ?? 2;
 
   return (
     <Box flexDirection="column">
@@ -50,24 +52,16 @@ export const ToolResultMessage: React.FC<ToolResultMessageProps> = ({
           lines.push(is_error ? 'No output (error)' : 'No output');
         }
 
-        // 箭头符号和颜色
-        const arrow = '↳';
-        const arrowColor = is_error ? theme.colors.error : theme.colors.info;
+        const symbolColor = is_error ? theme.colors.error : theme.colors.info;
+        const textColor = is_error ? theme.colors.error : theme.colors.dim;
 
         return (
           <Box key={index} flexDirection="column" marginBottom={1}>
-            {/* 第一行带箭头 */}
-            <Box>
-              <Text color={arrowColor}>{arrow} </Text>
-              <Text color={is_error ? theme.colors.error : undefined} dimColor={!is_error}>
-                {lines[0]}
-              </Text>
-            </Box>
-
-            {/* 后续行缩进显示 */}
-            {lines.slice(1).map((line, lineIndex) => (
-              <Box key={lineIndex} marginLeft={2}>
-                <Text color={is_error ? theme.colors.error : undefined} dimColor={!is_error}>
+            {lines.map((line, lineIndex) => (
+              <Box key={lineIndex} marginLeft={indent}>
+                <Text color={symbolColor}>{prefix}</Text>
+                <Text color={textColor} dimColor={!is_error}>
+                  {' '}
                   {line}
                 </Text>
               </Box>

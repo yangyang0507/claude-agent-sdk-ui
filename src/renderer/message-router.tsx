@@ -9,6 +9,7 @@ import { AssistantMessage } from '../components/message/assistant-message.js';
 import { ToolResultMessage } from '../components/message/tool-result-message.js';
 import { FinalResult } from '../components/message/final-result.js';
 import type { RendererOptions } from '../types/renderer.js';
+import type { ToolExecutionStateMap } from '../utils/tool-states.js';
 import {
   isSystemInitMessage,
   isAssistantMessage,
@@ -19,6 +20,7 @@ import {
 export interface MessageRouterProps {
   message: SDKMessage;
   options: Required<RendererOptions>;
+  toolStates: ToolExecutionStateMap;
 }
 
 /**
@@ -31,7 +33,11 @@ export interface MessageRouterProps {
  * <MessageRouter message={message} options={options} />
  * ```
  */
-export const MessageRouter: React.FC<MessageRouterProps> = ({ message, options }) => {
+export const MessageRouter: React.FC<MessageRouterProps> = ({
+  message,
+  options,
+  toolStates,
+}) => {
   // System 初始化消息
   if (isSystemInitMessage(message)) {
     return <SystemMessage message={message} />;
@@ -45,6 +51,7 @@ export const MessageRouter: React.FC<MessageRouterProps> = ({ message, options }
         showThinking={options.showThinking}
         showToolDetails={options.showToolDetails}
         showToolContent={options.showToolContent}
+        toolStates={toolStates}
       />
     );
   }

@@ -7,10 +7,11 @@ import { Box, Text } from 'ink';
 import type { SDKAssistantMessage } from '@anthropic-ai/claude-agent-sdk';
 import { useTheme } from '../../hooks/use-theme.js';
 import { StreamingText } from '../ui/streaming-text.js';
-import { InfoBadge } from '../ui/badge.js';
 import { Markdown } from '../ui/markdown.js';
-import { isTextContent, isToolUseContent } from '../../types/messages.js';
-import { sanitizeToolInput, summarizeToolInput, extractToolDetailLines, formatToolLabel } from '../../utils/tools.js';
+import { Spinner } from '../ui/spinner.js';
+import { isTextContent, isThinkingContent, isToolUseContent } from '../../types/messages.js';
+import { sanitizeToolInput, summarizeToolInput, extractToolDetailLines } from '../../utils/tools.js';
+import type { ToolExecutionStateMap } from '../../utils/tool-states.js';
 
 export interface StreamingAssistantMessageProps {
   /**
@@ -42,6 +43,10 @@ export interface StreamingAssistantMessageProps {
    * 流式完成回调
    */
   onStreamComplete?: () => void;
+  /**
+   * 工具执行状态
+   */
+  toolStates?: ToolExecutionStateMap;
 }
 
 /**
@@ -65,9 +70,13 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
   typingSpeed = 20,
   streamingEnabled = true,
   onStreamComplete,
+  toolStates = {},
 }) => {
   const theme = useTheme();
   const { content } = message.message;
+  const prefix = theme.symbols.aiPrefix || theme.symbols.pending || theme.symbols.bullet || '⏺';
+  const outputPrefix = theme.symbols.toolOutput || '↳';
+  const indent = theme.layout.indent ?? 2;
 
   const [completedBlocks, setCompletedBlocks] = React.useState(0);
 
@@ -90,21 +99,35 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
 
         const isCurrentBlock = index === completedBlocks;
 
-        // 文本内容
-        if (isTextContent(item)) {
-          // 如果是 thinking，根据配置决定是否显示
-          if ('thinking' in item && !showThinking) {
-            // 跳过 thinking，直接标记为完成
+        if (isThinkingContent(item)) {
+          if (!showThinking) {
             if (isCurrentBlock && streamingEnabled) {
               setTimeout(handleBlockComplete, 0);
             }
             return null;
           }
 
+          if (isCurrentBlock && streamingEnabled) {
+            setTimeout(handleBlockComplete, 0);
+          }
+
+          return (
+            <Box key={index} flexDirection="row" marginBottom={1}>
+              <Text color={theme.colors.dim}>{theme.symbols?.thinking || prefix}</Text>
+              <Text dimColor> {item.thinking}</Text>
+            </Box>
+          );
+        }
+
+        // 文本内容
+        if (isTextContent(item)) {
+          // 如果是 thinking，根据配置决定是否显示
           const text = item.text;
 
           return (
-            <Box key={index} flexDirection="column">
+            <Box key={index} flexDirection="row" alignItems="flex-start" marginBottom={1}>
+              <Text color={theme.colors.primary}>{prefix}</Text>
+              <Box marginLeft={1} flexDirection="column">
               {isCurrentBlock && streamingEnabled ? (
                 <StreamingText
                   text={text}
@@ -113,10 +136,11 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
                   onComplete={handleBlockComplete}
                 />
               ) : (
-                <Markdown theme={theme} highlightCode={true} maxWidth={120}>
+                  <Markdown theme={theme} highlightCode={true} maxWidth={theme.layout.maxWidth ?? 120}>
                   {text}
                 </Markdown>
               )}
+              </Box>
             </Box>
           );
         }
@@ -135,19 +159,35 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
           });
           const summary = summarizeToolInput(name, sanitizedInput);
           const details = showToolDetails ? extractToolDetailLines(sanitizedInput) : [];
+          const toolState = toolStates[item.id];
+          const status = toolState?.status ?? 'pending';
+          const isError = status === 'error';
+          const isPending = status === 'pending';
+          const displayText = summary ? `${name}(${summary})` : name;
 
           return (
-            <Box key={index} flexDirection="column" marginBottom={1}>
-              <InfoBadge>{formatToolLabel(name)}</InfoBadge>
-              {summary && <Text dimColor> {summary}</Text>}
+            <Box key={index} flexDirection="column" marginBottom={details.length > 0 ? 1 : 0}>
+              <Box flexDirection="row" alignItems="center">
+                <Text color={isError ? theme.colors.error : theme.colors.primary}>{prefix}</Text>
+                <Text color={isError ? theme.colors.error : theme.colors.text}>
+                  {' '}
+                  {displayText}
+                </Text>
+                {isPending && (
+                  <Box marginLeft={1}>
+                    <Spinner text="" type="dots" color={theme.colors.info} />
+                  </Box>
+                )}
+              </Box>
 
               {/* 工具参数详情 */}
               {details.length > 0 && (
-                <Box flexDirection="column" marginLeft={2}>
+                <Box flexDirection="column" marginLeft={indent}>
                   {details.map((detail: string, i: number) => (
-                    <Text key={i} dimColor>
-                      • {detail}
-                    </Text>
+                    <Box key={i} flexDirection="row">
+                      <Text color={theme.colors.dim}>{outputPrefix}</Text>
+                      <Text dimColor> {detail}</Text>
+                    </Box>
                   ))}
                 </Box>
               )}

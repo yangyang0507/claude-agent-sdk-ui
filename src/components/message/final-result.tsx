@@ -5,7 +5,6 @@
 import React from 'react';
 import { Box } from 'ink';
 import type { SDKResultMessage } from '@anthropic-ai/claude-agent-sdk';
-import { Divider } from '../ui/divider.js';
 import { SuccessBadge, InfoBadge, WarningBadge } from '../ui/badge.js';
 import { isResultSuccessMessage } from '../../types/messages.js';
 import { useTheme } from '../../hooks/use-theme.js';
