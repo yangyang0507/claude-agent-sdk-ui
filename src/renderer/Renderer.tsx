@@ -9,6 +9,8 @@ import type { RendererOptions } from '../types/renderer.js';
 import { ThemeProvider } from '../hooks/use-theme.js';
 import { MessageRouter } from './message-router.js';
 import { deriveToolExecutionState } from '../utils/tool-states.js';
+import { StatusLine } from '../components/ui/status-line.js';
+import { isAssistantMessage, isUserMessage, isResultMessage } from '../types/messages.js';
 
 interface UIRendererAppProps {
   messages: SDKMessage[];
@@ -21,6 +23,27 @@ interface UIRendererAppProps {
 const UIRendererApp: React.FC<UIRendererAppProps> = ({ messages, options }) => {
   const toolStates = React.useMemo(() => deriveToolExecutionState(messages), [messages]);
 
+  // 判断是否需要显示"等待中"状态和等待消息
+  const waitingState = React.useMemo<{ show: boolean; message: string }>(() => {
+    if (messages.length === 0) return { show: false, message: '' };
+    
+    const lastMessage = messages[messages.length - 1];
+    
+    // 如果最后一条消息是 result，不显示等待
+    if (isResultMessage(lastMessage)) return { show: false, message: '' };
+    
+    // 如果最后一条消息是 user 消息（工具结果），显示"思考中"
+    if (isUserMessage(lastMessage)) return { show: true, message: 'Thinking...' };
+    
+    // 如果最后一条消息是 assistant 消息，不显示等待
+    // （要么有工具调用正在执行，要么是纯文本回复已完成）
+    if (isAssistantMessage(lastMessage)) {
+      return { show: false, message: '' };
+    }
+    
+    return { show: false, message: '' };
+  }, [messages]);
+
   return (
     <ThemeProvider theme={options.theme}>
       <Box flexDirection="column">
@@ -32,6 +55,15 @@ const UIRendererApp: React.FC<UIRendererAppProps> = ({ messages, options }) => {
             toolStates={toolStates}
           />
         ))}
+        
+        {/* 显示等待状态 */}
+        {waitingState.show && (
+          <StatusLine
+            status="active"
+            spinner={true}
+            label={waitingState.message}
+          />
+        )}
       </Box>
     </ThemeProvider>
   );
