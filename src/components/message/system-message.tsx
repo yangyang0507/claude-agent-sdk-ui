@@ -10,6 +10,8 @@ import { useTheme } from '../../hooks/use-theme.js';
 
 export interface SystemMessageProps {
   message: SDKSystemMessage;
+  /** 是否显示会话信息（默认: true） */
+  showSessionInfo?: boolean;
 }
 
 /**
@@ -22,11 +24,17 @@ export interface SystemMessageProps {
  * <SystemMessage message={systemMessage} />
  * ```
  */
-export const SystemMessage: React.FC<SystemMessageProps> = ({ message }) => {
+export const SystemMessage: React.FC<SystemMessageProps> = ({ 
+  message,
+  showSessionInfo = true,
+}) => {
   const theme = useTheme();
 
   // 如果不包含 tools 字段，说明不是初始化消息
   if (!('tools' in message)) return null;
+
+  // 如果配置不显示，直接返回 null
+  if (!showSessionInfo) return null;
 
   return (
     <Box flexDirection="column">

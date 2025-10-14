@@ -150,6 +150,9 @@ export class StreamingRenderer {
     return {
       theme: options.theme ?? 'dark',
       showTimestamps: options.showTimestamps ?? false,
+      showSessionInfo: options.showSessionInfo ?? true,
+      showFinalResult: options.showFinalResult ?? true,
+      showExecutionStats: options.showExecutionStats ?? false,
       showTokenUsage: options.showTokenUsage ?? false,
       compact: options.compact ?? false,
       maxOutputLines: options.maxOutputLines ?? 100,
@@ -189,13 +192,16 @@ export class StreamingRenderer {
   async render(message: SDKMessage): Promise<void> {
     this.messages.push(message);
 
+    // 创建新数组以触发 React 重新渲染
+    const messagesCopy = [...this.messages];
+
     // 如果启用了流式渲染且是 Assistant 消息，设置为当前流式索引
     if (
       this.options.streaming &&
       isAssistantMessage(message) &&
       this.options.typingEffect
     ) {
-      this.currentStreamingIndex = this.messages.length - 1;
+      this.currentStreamingIndex = messagesCopy.length - 1;
       this.streamCompletePromise = this.createStreamCompletePromise();
     } else {
       // 非流式消息，不需要等待
@@ -207,7 +213,7 @@ export class StreamingRenderer {
     if (!this.app) {
       this.app = render(
         <StreamingRendererApp
-          messages={this.messages}
+          messages={messagesCopy}
           options={this.options}
           currentStreamingIndex={this.currentStreamingIndex}
           onStreamComplete={this.handleStreamComplete}
@@ -217,7 +223,7 @@ export class StreamingRenderer {
       // 重新渲染
       this.app.rerender(
         <StreamingRendererApp
-          messages={this.messages}
+          messages={messagesCopy}
           options={this.options}
           currentStreamingIndex={this.currentStreamingIndex}
           onStreamComplete={this.handleStreamComplete}

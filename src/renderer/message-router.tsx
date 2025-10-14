@@ -40,7 +40,7 @@ export const MessageRouter: React.FC<MessageRouterProps> = ({
 }) => {
   // System 初始化消息
   if (isSystemInitMessage(message)) {
-    return <SystemMessage message={message} />;
+    return <SystemMessage message={message} showSessionInfo={options.showSessionInfo} />;
   }
 
   // Assistant 消息
@@ -63,7 +63,14 @@ export const MessageRouter: React.FC<MessageRouterProps> = ({
 
   // 最终结果消息
   if (isResultMessage(message)) {
-    return <FinalResult message={message} showTokenUsage={options.showTokenUsage} />;
+    return (
+      <FinalResult
+        message={message}
+        showFinalResult={options.showFinalResult}
+        showExecutionStats={options.showExecutionStats}
+        showTokenUsage={options.showTokenUsage}
+      />
+    );
   }
 
   // 未知消息类型

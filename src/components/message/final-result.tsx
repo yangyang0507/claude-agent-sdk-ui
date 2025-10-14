@@ -13,6 +13,11 @@ import { Markdown } from '../ui/markdown.js';
 
 export interface FinalResultProps {
   message: SDKResultMessage;
+  /** 是否显示最终结果（默认: true） */
+  showFinalResult?: boolean;
+  /** 是否显示执行统计（默认: false） */
+  showExecutionStats?: boolean;
+  /** 是否显示 Token 使用统计（默认: false） */
   showTokenUsage?: boolean;
 }
 
@@ -28,16 +33,17 @@ export interface FinalResultProps {
  */
 export const FinalResult: React.FC<FinalResultProps> = ({
   message,
+  showFinalResult = true,
+  showExecutionStats = false,
   showTokenUsage = false,
 }) => {
   const theme = useTheme();
   const isSuccess = isResultSuccessMessage(message);
 
-
   return (
     <Box flexDirection="column">
       {/* 最终结果文本 */}
-      {isSuccess && 'result' in message && (
+      {showFinalResult && isSuccess && 'result' in message && (
         <CustomBox
           borderStyle="round"
           borderColor={theme.colors.success}
@@ -53,7 +59,8 @@ export const FinalResult: React.FC<FinalResultProps> = ({
       )}
 
       {/* 执行统计 */}
-      <CustomBox
+      {showExecutionStats && (
+        <CustomBox
         borderStyle="round"
         borderColor={theme.colors.info}
         title="📊 Execution Stats"
@@ -82,6 +89,7 @@ export const FinalResult: React.FC<FinalResultProps> = ({
           </Box>
         </Box>
       </CustomBox>
+      )}
 
       {/* Token 使用信息（可选） */}
       {showTokenUsage && (

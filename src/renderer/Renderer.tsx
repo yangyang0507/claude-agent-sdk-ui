@@ -65,6 +65,9 @@ export class UIRenderer {
     return {
       theme: options.theme ?? 'dark',
       showTimestamps: options.showTimestamps ?? false,
+      showSessionInfo: options.showSessionInfo ?? true,
+      showFinalResult: options.showFinalResult ?? true,
+      showExecutionStats: options.showExecutionStats ?? false,
       showTokenUsage: options.showTokenUsage ?? false,
       compact: options.compact ?? false,
       maxOutputLines: options.maxOutputLines ?? 100,
@@ -85,15 +88,18 @@ export class UIRenderer {
   async render(message: SDKMessage): Promise<void> {
     this.messages.push(message);
 
+    // 创建新数组以触发 React 重新渲染
+    const messagesCopy = [...this.messages];
+
     // 如果还没有创建 app，创建一个
     if (!this.app) {
       this.app = render(
-        <UIRendererApp messages={this.messages} options={this.options} />
+        <UIRendererApp messages={messagesCopy} options={this.options} />
       );
     } else {
       // 重新渲染（Ink 会自动处理增量更新）
       this.app.rerender(
-        <UIRendererApp messages={this.messages} options={this.options} />
+        <UIRendererApp messages={messagesCopy} options={this.options} />
       );
     }
   }

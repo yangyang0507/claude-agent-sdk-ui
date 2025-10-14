@@ -29,7 +29,16 @@ export interface RendererOptions {
   /** 是否显示时间戳 */
   showTimestamps?: boolean;
 
-  /** 是否显示 Token 使用统计（默认: false） */
+  /** 是否显示会话信息（Session Info）（默认: true） */
+  showSessionInfo?: boolean;
+
+  /** 是否显示最终结果（Final Result）（默认: true） */
+  showFinalResult?: boolean;
+
+  /** 是否显示执行统计（Execution Stats）（默认: false） */
+  showExecutionStats?: boolean;
+
+  /** 是否显示 Token 使用统计（Token Usage）（默认: false） */
   showTokenUsage?: boolean;
 
   /** 紧凑模式 - 减少空白行 */

@@ -21,6 +21,7 @@ export function deriveToolExecutionState(messages: SDKMessage[]): ToolExecutionS
     if (isAssistantMessage(message)) {
       for (const item of message.message.content) {
         if (isToolUseContent(item)) {
+          // 只在不存在时初始化为 pending
           if (!state[item.id]) {
             state[item.id] = { status: 'pending' };
           }
@@ -30,17 +31,18 @@ export function deriveToolExecutionState(messages: SDKMessage[]): ToolExecutionS
     }
 
     if (isUserMessage(message)) {
+      // 跳过 replay 消息
+      if ('isReplay' in message && message.isReplay) {
+        continue;
+      }
+
       for (const item of message.message.content) {
         if (!isToolResultContent(item)) continue;
 
-        const current = state[item.tool_use_id] ?? { status: 'pending' };
         const isError = Boolean(item.is_error);
-        const nextStatus: ToolExecutionStatus = isError
-          ? 'error'
-          : current.status === 'error'
-            ? 'error'
-            : 'success';
+        const nextStatus: ToolExecutionStatus = isError ? 'error' : 'success';
 
+        // 直接设置状态，不管之前是什么
         state[item.tool_use_id] = {
           status: nextStatus,
         };
