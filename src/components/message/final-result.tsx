@@ -3,14 +3,13 @@
  */
 
 import React from 'react';
-import { Box } from 'ink';
+import { Box, Text } from 'ink';
 import type { SDKResultMessage } from '@anthropic-ai/claude-agent-sdk';
-import { SuccessBadge, InfoBadge, WarningBadge } from '../ui/badge.js';
+import { Box as CustomBox } from '../ui/box.js';
 import { isResultSuccessMessage } from '../../types/messages.js';
 import { useTheme } from '../../hooks/use-theme.js';
 import { formatDuration } from '../../utils/time.js';
 import { Markdown } from '../ui/markdown.js';
-import { Table } from '../ui/table.js';
 
 export interface FinalResultProps {
   message: SDKResultMessage;
@@ -34,72 +33,105 @@ export const FinalResult: React.FC<FinalResultProps> = ({
   const theme = useTheme();
   const isSuccess = isResultSuccessMessage(message);
 
-  // 构建统计数据
-  const statsData = [
-    { Metric: 'Status', Value: isSuccess ? '✅ Success' : '❌ Failed' },
-    { Metric: 'Duration', Value: formatDuration(message.duration_ms) },
-    { Metric: 'Turns', Value: message.num_turns.toString() },
-    { Metric: 'Total Cost', Value: `$${message.total_cost_usd.toFixed(4)}` },
-  ];
-
-  const tokenData = [
-    {
-      Type: 'Input Tokens',
-      Count: message.usage.input_tokens.toLocaleString(),
-    },
-    {
-      Type: 'Output Tokens',
-      Count: message.usage.output_tokens.toLocaleString(),
-    },
-  ];
-
-  if (message.usage.cache_read_input_tokens) {
-    tokenData.push({
-      Type: 'Cache Read',
-      Count: message.usage.cache_read_input_tokens.toLocaleString(),
-    });
-  }
-
 
   return (
     <Box flexDirection="column">
       {/* 最终结果文本 */}
       {isSuccess && 'result' in message && (
-        <Box flexDirection="column" marginBottom={1}>
-          <SuccessBadge>FINAL RESULT</SuccessBadge>
-          <Box marginTop={1} flexDirection="column">
-            <Markdown theme={theme} highlightCode={true} maxWidth={120}>
-              {message.result}
-            </Markdown>
-          </Box>
-        </Box>
+        <CustomBox
+          borderStyle="round"
+          borderColor={theme.colors.success}
+          title="✅ Final Result"
+          padding={1}
+          marginBottom={1}
+          marginRight={1}
+        >
+          <Markdown theme={theme} highlightCode={true} maxWidth={120}>
+            {message.result}
+          </Markdown>
+        </CustomBox>
       )}
 
       {/* 执行统计 */}
-      <Box flexDirection="column" marginBottom={1}>
-        <InfoBadge>EXECUTION STATS</InfoBadge>
-        <Box marginTop={1}>
-          <Table data={statsData} theme={theme} />
+      <CustomBox
+        borderStyle="round"
+        borderColor={theme.colors.info}
+        title="📊 Execution Stats"
+        padding={1}
+        marginBottom={1}
+        marginRight={1}
+      >
+        <Box flexDirection="column">
+          <Box>
+            <Text dimColor>Status: </Text>
+            <Text color={isSuccess ? theme.colors.success : theme.colors.error}>
+              {isSuccess ? '✅ Success' : '❌ Failed'}
+            </Text>
+          </Box>
+          <Box>
+            <Text dimColor>Duration: </Text>
+            <Text color={theme.colors.primary}>{formatDuration(message.duration_ms)}</Text>
+          </Box>
+          <Box>
+            <Text dimColor>Turns: </Text>
+            <Text color={theme.colors.primary}>{message.num_turns}</Text>
+          </Box>
+          <Box>
+            <Text dimColor>Total Cost: </Text>
+            <Text color={theme.colors.warning}>${message.total_cost_usd.toFixed(4)}</Text>
+          </Box>
         </Box>
-      </Box>
+      </CustomBox>
 
       {/* Token 使用信息（可选） */}
       {showTokenUsage && (
-        <Box flexDirection="column" marginBottom={1}>
-          <InfoBadge>TOKEN USAGE</InfoBadge>
-          <Box marginTop={1}>
-            <Table data={tokenData} theme={theme} />
+        <CustomBox
+          borderStyle="round"
+          borderColor={theme.colors.info}
+          title="🔢 Token Usage"
+          padding={1}
+          marginBottom={1}
+          marginRight={1}
+        >
+          <Box flexDirection="column">
+            <Box>
+              <Text dimColor>Input Tokens: </Text>
+              <Text color={theme.colors.primary}>
+                {message.usage.input_tokens.toLocaleString()}
+              </Text>
+            </Box>
+            <Box>
+              <Text dimColor>Output Tokens: </Text>
+              <Text color={theme.colors.primary}>
+                {message.usage.output_tokens.toLocaleString()}
+              </Text>
+            </Box>
+            {message.usage.cache_read_input_tokens > 0 && (
+              <Box>
+                <Text dimColor>Cache Read: </Text>
+                <Text color={theme.colors.success}>
+                  {message.usage.cache_read_input_tokens.toLocaleString()}
+                </Text>
+              </Box>
+            )}
           </Box>
-        </Box>
+        </CustomBox>
       )}
 
       {/* 权限拒绝提示 */}
       {message.permission_denials.length > 0 && (
-        <Box marginBottom={1}>
-          <WarningBadge>
-            {message.permission_denials.length} PERMISSION DENIALS
-          </WarningBadge>
-        </Box>
+        <CustomBox
+          borderStyle="round"
+          borderColor={theme.colors.warning}
+          title="⚠️  Permission Denials"
+          padding={1}
+          marginBottom={1}
+          marginRight={1}
+        >
+          <Text color={theme.colors.warning}>
+            {message.permission_denials.length} tool(s) were denied permission
+          </Text>
+        </CustomBox>
       )}
     </Box>
   );
