@@ -10,6 +10,7 @@ import {
   isTextContent,
   isThinkingContent,
   isToolUseContent,
+  type MessageContent,
 } from '../../types/messages.js';
 import { useTheme } from '../../hooks/use-theme.js';
 import {
@@ -52,13 +53,19 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
 }) => {
   const theme = useTheme();
   const { content } = message.message;
-  const toolOutputSymbol = theme.symbols.toolOutput || '└';
+  const toolOutputSymbol = theme.symbols.toolOutput || '⎿';
 
   return (
     <Box flexDirection="column">
-      {content.map((item: any, index: number) => {
+      {content.map((item: MessageContent, index: number) => {
         // 1. 文本内容
         if (isTextContent(item)) {
+          // 跳过空内容或特殊标记
+          const trimmedText = item.text.trim();
+          if (!trimmedText || trimmedText === '(no content)') {
+            return null;
+          }
+
           // 解析文本中的 thinking 标签
           const parsedContent = parseThinkingTags(item.text);
 

@@ -9,7 +9,7 @@ import { useTheme } from '../../hooks/use-theme.js';
 import { StreamingText } from '../ui/streaming-text.js';
 import { Markdown } from '../ui/markdown.js';
 import { StatusLine } from '../ui/status-line.js';
-import { isTextContent, isThinkingContent, isToolUseContent } from '../../types/messages.js';
+import { isTextContent, isThinkingContent, isToolUseContent, type MessageContent } from '../../types/messages.js';
 import { sanitizeToolInput, summarizeToolInput, extractToolDetailLines } from '../../utils/tools.js';
 import type { ToolExecutionStateMap } from '../../utils/tool-states.js';
 import { parseThinkingTags } from '../../utils/string.js';
@@ -75,8 +75,8 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
 }) => {
   const theme = useTheme();
   const { content } = message.message;
-  const thinkingSymbol = theme.symbols?.thinking || theme.symbols.aiPrefix || '…';
-  const toolOutputSymbol = theme.symbols.toolOutput || '└';
+  const thinkingSymbol = theme.symbols?.thinking || theme.symbols.aiPrefix || '∴';
+  const toolOutputSymbol = theme.symbols.toolOutput || '⎿';
 
   const [completedBlocks, setCompletedBlocks] = React.useState(0);
 
@@ -92,7 +92,7 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
 
   return (
     <Box flexDirection="column" marginBottom={1}>
-      {content.map((item: any, index: number) => {
+      {content.map((item: MessageContent, index: number) => {
         // 只显示已完成的块和当前正在流式的块
         const shouldShow = index <= completedBlocks;
         if (!shouldShow) return null;
@@ -126,6 +126,16 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
 
         // 文本内容
         if (isTextContent(item)) {
+          // 跳过空内容或特殊标记
+          const trimmedText = item.text.trim();
+          if (!trimmedText || trimmedText === '(no content)') {
+            // 如果是当前块，触发完成回调
+            if (isCurrentBlock && streamingEnabled) {
+              setTimeout(handleBlockComplete, 0);
+            }
+            return null;
+          }
+
           // 解析文本中的 thinking 标签
           const parsedContent = parseThinkingTags(item.text);
 

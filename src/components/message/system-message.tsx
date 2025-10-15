@@ -82,7 +82,7 @@ export const SystemMessage: React.FC<SystemMessageProps> = ({
                 </Text>
               </Box>
               <Box marginLeft={1}>
-                <Text dimColor>└ </Text>
+                <Text dimColor>⎿ </Text>
                 <Text dimColor>{message.tools.join('  •  ')}</Text>
               </Box>
             </Box>

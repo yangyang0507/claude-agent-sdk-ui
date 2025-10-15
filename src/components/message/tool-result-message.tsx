@@ -5,7 +5,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { SDKUserMessage } from '@anthropic-ai/claude-agent-sdk';
-import { isToolResultContent } from '../../types/messages.js';
+import { isToolResultContent, type MessageContent } from '../../types/messages.js';
 import { useTheme } from '../../hooks/use-theme.js';
 import { truncateOutput } from '../../utils/string.js';
 import { StatusLine } from '../ui/status-line.js';
@@ -34,11 +34,11 @@ export const ToolResultMessage: React.FC<ToolResultMessageProps> = ({
 }) => {
   const theme = useTheme();
   const { content } = message.message;
-  const toolOutputSymbol = theme.symbols.toolOutput || '└';
+  const toolOutputSymbol = theme.symbols.toolOutput || '⎿';
 
   return (
     <Box flexDirection="column">
-      {content.map((item: any, index: number) => {
+      {content.map((item: MessageContent, index: number) => {
         if (!isToolResultContent(item)) return null;
 
         const { content: output, is_error } = item;
@@ -68,7 +68,7 @@ export const ToolResultMessage: React.FC<ToolResultMessageProps> = ({
           <Box key={index} flexDirection="column" marginBottom={1}>
             <StatusLine
               indentLevel={1}
-              status={status as any}
+              status={status}
               color={indicatorColor}
               symbol={toolOutputSymbol}
               label={
