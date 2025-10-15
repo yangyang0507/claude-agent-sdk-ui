@@ -1,10 +1,12 @@
-# Claude Agent SDK UI
-
 <div align="center">
 
-**一行代码实现 Claude Code 级别的 CLI UI 渲染体验**
+# Claude Agent SDK UI
 
-为 Claude Agent SDK 提供开箱即用的美观 CLI UI 渲染
+**基于 React + Ink 的声明式终端 UI 渲染框架**
+
+为 Claude Agent SDK 提供开箱即用的美观 CLI UI 体验
+
+![hello.gif](./docs/resources/hello.gif)
 
 [![npm version](https://img.shields.io/npm/v/claude-agent-sdk-ui.svg)](https://www.npmjs.com/package/claude-agent-sdk-ui)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
@@ -16,17 +18,16 @@
 
 ---
 
-## ✨ 特性
+## ✨ 核心特性
 
-- 🎨 **开箱即用** - 零配置即可获得美观的终端 UI
-- 🚀 **极简 API** - 一行代码实现消息渲染
-- 🎭 **主题系统** - 内置暗色/亮色主题,支持完全自定义
-- 📊 **丰富展示** - 工具调用、代码高亮、Markdown 渲染、统计信息等
-- 🎁 **UI 组件库** - Badge、Box、Divider、Table、Spinner 等专业组件
-- ⚡ **高性能** - 优化的渲染引擎,流畅处理大量消息
+- 🎨 **React + Ink 架构** - 使用声明式组件构建终端 UI
+- 🚀 **极简 API** - 一行代码实现完整渲染
+- 🎭 **主题系统** - 内置 claude-code 和 droid 主题，支持自定义
+- 🎁 **丰富组件库** - Badge、Box、Divider、Table、Spinner、Markdown 等
 - 🌊 **流式渲染** - 支持实时更新和打字机效果
+- 📼 **日志重放** - 完整的会话日志记录和重放功能
 - 💪 **类型安全** - 完整的 TypeScript 类型定义
-- 🔧 **灵活配置** - 丰富的配置选项满足各种需求
+- ⚡ **高性能** - 优化的渲染引擎，流畅处理大量消息
 
 ---
 
@@ -36,9 +37,9 @@
 npm install claude-agent-sdk-ui @anthropic-ai/claude-agent-sdk
 ```
 
-**要求:**
+**要求：**
 - Node.js >= 18.0.0
-- @anthropic-ai/claude-agent-sdk >= 0.1.0
+- @anthropic-ai/claude-agent-sdk >= 0.1.14
 
 ---
 
@@ -50,57 +51,66 @@ npm install claude-agent-sdk-ui @anthropic-ai/claude-agent-sdk
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { renderQuery } from 'claude-agent-sdk-ui';
 
-// 🎉 超级简洁!一行代码搞定
-await renderQuery(query({ prompt: '你好,Claude!' }));
+// 🎉 超级简洁！一行代码搞定
+await renderQuery(query({ prompt: '你好，Claude！' }));
 ```
 
-### 逐条渲染(可选)
+### 流式渲染 - 带打字机效果
 
 ```typescript
-import { render } from 'claude-agent-sdk-ui';
+import { renderQueryStreaming } from 'claude-agent-sdk-ui';
 
-// 如果需要对每条消息进行额外处理
-for await (const message of query({ prompt: '你好!' })) {
-  // 可以在这里添加自定义逻辑
-  await render(message);
-}
+// 流式渲染，带打字机效果
+await renderQueryStreaming(
+  query({
+    prompt: '解释一下 TypeScript 的优势',
+    options: { includePartialMessages: true }
+  }),
+  {
+    streaming: true,
+    typingEffect: true,
+    typingSpeed: 20
+  }
+);
 ```
 
-### 高级用法 - 自定义配置
+### 自定义配置
 
 ```typescript
-import { query } from '@anthropic-ai/claude-agent-sdk';
-import { renderQuery } from 'claude-agent-sdk-ui';
-
 await renderQuery(
   query({
-    prompt: '请帮我分析一下当前目录的文件结构',
+    prompt: '分析当前目录的文件结构',
     options: {
       maxTurns: 10,
       allowedTools: ['Read', 'Grep', 'Glob'],
     }
   }),
   {
-    theme: 'dark',               // 主题选择
-    showTimestamps: true,        // 显示时间戳
-    showTokenUsage: true,        // 显示 Token 统计（默认关闭）
-    showThinking: true,          // 显示思考过程
-    showToolDetails: true,       // 显示工具详情
-    showToolContent: true,       // 需要时显示 content 字段（默认隐藏）
-    maxOutputLines: 50,          // 最大输出行数
+    theme: 'claude-code',         // 主题选择
+    showTimestamps: true,          // 显示时间戳
+    showSessionInfo: true,         // 显示会话信息
+    showFinalResult: true,         // 显示最终结果
+    showExecutionStats: false,     // 显示执行统计
+    showTokenUsage: false,         // 显示 Token 统计
+    showThinking: true,            // 显示思考过程
+    showToolDetails: true,         // 显示工具详情
+    maxOutputLines: 50,            // 最大输出行数
+    logging: {                     // 日志配置
+      enabled: true,
+      logPath: './logs'
+    }
   }
 );
 ```
 
-### 使用 Renderer 类
+### 使用渲染器类
 
 ```typescript
-import { query } from '@anthropic-ai/claude-agent-sdk';
-import { Renderer } from 'claude-agent-sdk-ui';
+import { createRenderer } from 'claude-agent-sdk-ui';
 
 // 创建渲染器实例
-const renderer = new Renderer({
-  theme: 'dark',
+const renderer = createRenderer({
+  theme: 'droid',
   showTokenUsage: true,
 });
 
@@ -109,176 +119,205 @@ for await (const message of query({ prompt: '...' })) {
   await renderer.render(message);
 }
 
-// 获取状态
-const stats = renderer.getState();
-console.log(`处理了 ${stats.processedMessages} 条消息`);
+// 清理资源
+await renderer.cleanup();
 ```
 
 ---
 
-## 🎨 渲染效果展示
+## 📖 核心 API
 
-### System 初始化消息（增强版）
+### 函数式 API
 
-```
-═══════════ 🚀 SESSION INITIALIZED ═══════════
+```typescript
+// 渲染整个会话
+await renderQuery(queryGenerator, options?);
 
-╭───────────────── 📋 Session Info ─────────────────╮
-│ Session ID: 628c0fcf                              │
-│ Model: claude-sonnet-4                            │
-│ Working Dir: /Users/username/project              │
-│ Permission: [ℹ DEFAULT]                          │
-╰───────────────────────────────────────────────────╯
+// 渲染整个会话（流式版本）
+await renderQueryStreaming(queryGenerator, options?);
 
-[✓ SUCCESS] 15 TOOLS AVAILABLE
-  🔧 Bash  🔧 Read  🔧 Edit  🔧 Write  ...
+// 渲染单条消息
+await render(message, options?);
 ```
 
-### Assistant 文本消息
+### 类式 API
 
-```
-我来帮您分析一下当前目录的文件结构。首先让我查看一下主要文件...
+```typescript
+// 创建标准渲染器
+const renderer = createRenderer(options?);
 
-tokens: 289
-```
+// 创建流式渲染器
+const streamingRenderer = createStreamingRenderer(options?);
 
-### 工具调用（增强版）
+// 渲染消息
+await renderer.render(message);
 
-```
-[ℹ INFO] 🔧 Bash
-
-┌───────────────────────────────────────────────┐
-│ {                                             │
-│   "command": "ls -la",                        │
-│   "description": "列出当前目录的详细文件信息"    │
-│ }                                             │
-└───────────────────────────────────────────────┘
-```
-
-### 工具结果（增强版）
-
-```
-[✓ SUCCESS] RESULT: SUCCESS (1.2s)
-
-┌───────────────────────────────────────────────┐
-│ total 560                                     │
-│ drwxr-xr-x  20 user  staff   640 Oct 13 ...  │
-│ drwx------  119 user  staff  3808 Oct 13 ... │
-│ ...                                           │
-└───────────────────────────────────────────────┘
-```
-
-### 最终结果（增强版）
-
-```
-═════════ ✅ EXECUTION COMPLETE ══════════
-
-[✓ SUCCESS] FINAL RESULT
-
-分析完成!当前目录包含以下主要文件和目录:
-...
-
-[ℹ INFO] EXECUTION STATS
-
-┌──────────────────┬────────────────────────┐
-│ Metric           │                  Value │
-├──────────────────┼────────────────────────┤
-│ Status           │             ✅ Success │
-│ Duration         │                  22.2s │
-│ Turns            │                     22 │
-│ Total Cost       │               $0.0827  │
-└──────────────────┴────────────────────────┘
-
-[ℹ TOKEN USAGE]
-
-┌──────────────────┬────────────────────────┐
-│ Type             │                  Count │
-├──────────────────┼────────────────────────┤
-│ Input Tokens     │                  8,117 │
-│ Output Tokens    │                    984 │
-│ Cache Read       │                112,928 │
-└──────────────────┴────────────────────────┘
-
+// 清理资源
+await renderer.cleanup();
 ```
 
 ---
 
-## 📚 完整示例
+## 🎭 主题系统
 
-### 示例 1: 基础使用
-
-见 `examples/agent-integration/streaming-simple.ts`:
+### 内置主题
 
 ```typescript
-import { query } from '@anthropic-ai/claude-agent-sdk';
-import { renderQuery } from '../src/index.js';
+import { claudeCodeTheme, droidTheme } from 'claude-agent-sdk-ui';
 
-async function simpleDemo() {
-  // 🎉 超级简洁!一行代码搞定
-  await renderQuery(query({
-    prompt: '请帮我分析一下当前目录的文件结构',
-    options: {
-      maxTurns: 10,
-      allowedTools: ['Read', 'Grep', 'Glob'],
-    },
-  }));
-}
+// 使用 claude-code 主题（默认）
+const renderer = createRenderer({ theme: 'claude-code' });
 
-simpleDemo();
+// 使用 droid 主题
+const renderer = createRenderer({ theme: 'droid' });
 ```
 
-运行示例:
-
-```bash
-# UI 框架演示（推荐）
-npm run demo:ui
-
-# UI 流式渲染演示
-npm run demo:ui:streaming
-
-# 基础组件演示
-npm run demo:basic
-
-# 完整会话演示
-npm run demo:full
-
-# 主题演示
-npm run demo:theme:claude
-npm run demo:theme:droid
-```
-
-### 示例 2: 自定义主题
+### 自定义主题
 
 ```typescript
-import { createRenderer, createTheme } from 'claude-agent-sdk-ui';
+import { createTheme } from 'claude-agent-sdk-ui';
 
-// 创建自定义主题
-const oceanTheme = createTheme({
-  name: 'ocean',
+const myTheme = createTheme({
+  name: 'my-theme',
   colors: {
-    primary: '#0077BE',
-    secondary: '#00A8CC',
-    success: '#26C281',
-    error: '#EE5A6F',
-    warning: '#F8B500',
-    info: '#3498DB',
-    text: '#2C3E50',
-    dim: '#95A5A6',
+    primary: '#FF6B6B',
+    success: '#51CF66',
+    error: '#FF6B6B',
+    warning: '#FFD93D',
+    info: '#4DABF7',
+    text: '#F8F9FA',
+    dim: '#868E96',
   },
   symbols: {
-    success: '✓',
-    error: '✗',
-    warning: '⚠',
-    info: 'ℹ',
+    success: '✅',
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️',
     pending: '⏳',
-    spinner: ['🌊', '🌊', '🌊'],
-    bullet: '•',
-    arrow: '→',
+    spinner: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
   },
 });
 
-// 使用自定义主题
-const renderer = createRenderer({ theme: oceanTheme });
+const renderer = createRenderer({ theme: myTheme });
+```
+
+---
+
+## 🎁 UI 组件库
+
+所有组件都基于 React + Ink 构建，可以在自己的项目中直接使用：
+
+```typescript
+import {
+  Badge,
+  Box,
+  Divider,
+  Spinner,
+  StatusLine,
+  Markdown,
+  StreamingText,
+  Table
+} from 'claude-agent-sdk-ui';
+
+// Badge - 状态标签
+<Badge type="success">SUCCESS</Badge>
+<Badge type="error">ERROR</Badge>
+<Badge type="info">INFO</Badge>
+
+// Box - 边框容器
+<Box borderStyle="round" padding={1}>
+  Content here
+</Box>
+
+// Divider - 分隔线
+<Divider style="heavy" text="SECTION TITLE" />
+
+// Spinner - 加载动画
+<Spinner type="dots" text="Loading..." />
+
+// StatusLine - 状态行
+<StatusLine
+  status="success"
+  label="Read"
+  message="File loaded"
+  duration={500}
+/>
+
+// Markdown - Markdown 渲染
+<Markdown>{markdownContent}</Markdown>
+
+// StreamingText - 流式文本
+<StreamingText
+  text="Hello, world!"
+  speed={20}
+  onComplete={() => {}}
+/>
+
+// Table - 表格
+<Table
+  headers={['Name', 'Value']}
+  rows={[
+    ['Foo', 'Bar'],
+    ['Baz', 'Qux']
+  ]}
+/>
+```
+
+---
+
+## 📼 日志记录与重放
+
+### 启用日志记录
+
+```typescript
+await renderQuery(
+  query({ prompt: '...' }),
+  {
+    logging: {
+      enabled: true,
+      logPath: './logs',
+      fileNameFormat: 'session-{sessionId}-{timestamp}.jsonl',
+      verbose: true
+    }
+  }
+);
+```
+
+日志会保存为 JSONL 格式（每行一个 JSON 对象），包含完整的消息数据和时间戳。
+
+### 重放日志
+
+使用 CLI 工具重放之前的会话：
+
+```bash
+# 基本用法
+npm run replay -- logs/session-xxx.jsonl
+
+# 使用自定义主题
+npm run replay -- logs/session-xxx.jsonl --theme droid
+
+# 实时模式，2倍速播放
+npm run replay -- logs/session-xxx.jsonl --realtime --speed 2
+
+# 流式渲染，显示思考内容
+npm run replay -- logs/session-xxx.jsonl --streaming --show-thinking
+
+# 固定延迟模式，每条消息间隔 500ms
+npm run replay -- logs/session-xxx.jsonl --fixed-delay 500
+```
+
+在代码中使用：
+
+```typescript
+import { replayLog } from 'claude-agent-sdk-ui';
+
+await replayLog('logs/session-xxx.jsonl', {
+  theme: 'droid',
+  realtime: true,
+  speed: 2,
+  showThinking: true,
+  showToolDetails: true
+});
 ```
 
 ---
@@ -290,311 +329,69 @@ const renderer = createRenderer({ theme: oceanTheme });
 ```typescript
 interface RendererOptions {
   // 主题配置
-  theme?: 'dark' | 'light' | Theme;
+  theme?: 'claude-code' | 'droid' | Theme;
 
   // 显示选项
-  showTimestamps?: boolean;      // 显示时间戳 (默认: false)
-  showTokenUsage?: boolean;      // 显示 Token 使用量 (默认: false)
-  showThinking?: boolean;        // 显示思考过程 (默认: false)
-  showToolDetails?: boolean;     // 显示工具详情 (默认: true)
-  showToolContent?: boolean;     // 显示 content 字段 (默认: false)
+  showTimestamps?: boolean;          // 显示时间戳（默认：false）
+  showSessionInfo?: boolean;         // 显示会话信息（默认：true）
+  showFinalResult?: boolean;         // 显示最终结果（默认：true）
+  showExecutionStats?: boolean;      // 显示执行统计（默认：false）
+  showTokenUsage?: boolean;          // 显示 Token 使用量（默认：false）
+  showThinking?: boolean;            // 显示思考过程（默认：false）
+  showToolDetails?: boolean;         // 显示工具详情（默认：true）
+  showToolContent?: boolean;         // 显示工具参数中的 content 字段（默认：false）
 
   // 格式选项
-  compact?: boolean;             // 紧凑模式 (默认: false)
-  maxOutputLines?: number;       // 工具结果最大行数 (默认: 100)
-  maxWidth?: number;             // 最大宽度 (默认: 120)
+  compact?: boolean;                 // 紧凑模式（默认：false）
+  maxOutputLines?: number;           // 工具结果最大行数（默认：100）
+  maxWidth?: number;                 // 最大宽度（默认：120）
+  codeHighlight?: boolean;           // 代码高亮（默认：true）
 
-  // 高级选项
-  codeHighlight?: boolean;       // 代码高亮 (默认: true)
-  streaming?: boolean;           // 流式渲染 (默认: false)
-  typingEffect?: boolean;        // 打字机效果 (默认: false)
-  typingSpeed?: number;          // 打字速度 (默认: 20ms)
-}
-```
+  // 流式选项
+  streaming?: boolean;               // 启用流式渲染（默认：false）
+  typingEffect?: boolean;            // 打字机效果（默认：false）
+  typingSpeed?: number;              // 打字速度（默认：20ms）
 
----
-
-## 🎭 主题系统
-
-### 内置主题
-
-```typescript
-import { darkTheme, lightTheme } from 'claude-agent-sdk-ui';
-
-// 使用暗色主题 (默认)
-const renderer = new Renderer({ theme: 'dark' });
-// 或
-const renderer = new Renderer({ theme: darkTheme });
-
-// 使用亮色主题
-const renderer = new Renderer({ theme: 'light' });
-// 或
-const renderer = new Renderer({ theme: lightTheme });
-```
-
-### 自定义主题
-
-```typescript
-import { createTheme } from 'claude-agent-sdk-ui';
-
-const myTheme = createTheme({
-  name: 'my-theme',
-  colors: {
-    primary: '#FF6B6B',    // 主色
-    success: '#51CF66',    // 成功色
-    error: '#FF6B6B',      // 错误色
-    warning: '#FFD93D',    // 警告色
-    info: '#4DABF7',       // 信息色
-    text: '#F8F9FA',       // 文本色
-    dim: '#868E96',        // 暗淡色
-  },
-  // 可选: 自定义其他配置
-  symbols: {
-    success: '✅',
-    error: '❌',
-    // ...
-  },
-});
-```
-
-### 主题配置详解
-
-```typescript
-interface Theme {
-  name: string;
-
-  colors: {
-    primary: string;      // 主色 - 标题、重要信息
-    secondary: string;    // 次要色 - 副标题
-    success: string;      // 成功色 - 成功消息
-    error: string;        // 错误色 - 错误消息
-    warning: string;      // 警告色 - 警告消息
-    info: string;         // 信息色 - 信息消息
-    text: string;         // 文本色 - 常规文本
-    dim: string;          // 暗淡色 - 次要文本
-    background?: string;  // 背景色 (可选)
-    highlight?: string;   // 高亮色 (可选)
-  };
-
-  symbols: {
-    success: string;      // ✓
-    error: string;        // ✗
-    warning: string;      // ⚠
-    info: string;         // ℹ
-    pending: string;      // ○
-    spinner: string[];    // 加载动画
-    bullet: string;       // •
-    arrow: string;        // →
-    thinking?: string;    // 💭
-    tool?: string;        // 🔧
-  };
-
-  borders: {
-    style: 'single' | 'double' | 'round' | 'bold' | 'none';
-    color: string;
-  };
-
-  layout: {
-    indent: number;           // 缩进空格数
-    lineSpacing: number;      // 行间距
-    componentSpacing?: number; // 组件间距
-  };
-
-  toolIcons?: {
-    [toolName: string]: string;  // 工具图标映射
+  // 日志选项
+  logging?: {
+    enabled: boolean;                // 启用日志记录
+    logPath?: string;                // 日志目录（默认：'./logs'）
+    fileNameFormat?: string;         // 文件名格式
+    verbose?: boolean;               // 详细日志输出
   };
 }
 ```
 
 ---
 
-## 📖 API 文档
+## 📚 示例代码
 
-### 主要导出
+项目包含多个示例代码，展示不同的使用场景：
 
-```typescript
-// 函数
-export function renderQuery(queryGenerator: AsyncGenerator<SDKMessage>, options?: RendererOptions): Promise<void>;
-export function render(message: SDKMessage, options?: RendererOptions): Promise<void>;
-export function createRenderer(options?: RendererOptions): Renderer;
-export function createTheme(options: ThemeOptions): Theme;
-export function getTheme(input?: ThemeInput): Theme;
+```bash
+# 简单示例
+npm run demo
 
-// 类
-export class Renderer {
-  constructor(options?: RendererOptions);
-  render(message: SDKMessage): Promise<void>;
-  getState(): RendererState;
-  reset(): void;
-}
-
-// 主题
-export { darkTheme, lightTheme };
-
-// 类型
-export type { SDKMessage, RendererOptions, Theme, ... };
+# 流式渲染示例
+npm run demo:streaming
 ```
 
-### Renderer 类方法
-
-#### `render(message: SDKMessage): Promise<void>`
-
-渲染单条 SDK 消息。
-
-```typescript
-await renderer.render(message);
-```
-
-#### `getState(): RendererState`
-
-获取当前渲染器状态。
-
-```typescript
-const state = renderer.getState();
-console.log(`已处理 ${state.processedMessages} 条消息`);
-console.log(`总成本: $${state.totalCost.toFixed(4)}`);
-```
-
-#### `reset(): void`
-
-重置渲染器状态。
-
-```typescript
-renderer.reset();
-```
+查看示例代码：
+- `examples/agent-integration/streaming-simple.ts` - 最简单的流式渲染
+- `examples/agent-integration/enhanced-ui-demo.ts` - UI 组件集成演示
+- `examples/agent-integration/streaming-demo.ts` - 完整的流式渲染示例
 
 ---
 
-## 🛠️ 工具函数
+## 🛠️ 开发
 
-### 字符串处理
-
-```typescript
-import {
-  truncate,
-  indent,
-  alignLeft,
-  alignRight,
-  alignCenter,
-  formatBytes,
-  pluralize,
-} from 'claude-agent-sdk-ui/utils';
-
-truncate('很长的文本...', 10);           // "很长的文..."
-indent('文本', 2);                      // "  文本"
-formatBytes(1234567);                 // "1.18 MB"
-pluralize(3, 'file');                 // "3 files"
-```
-
-### 时间格式化
-
-```typescript
-import {
-  formatDuration,
-  formatTimestamp,
-  formatTimeRange,
-} from 'claude-agent-sdk-ui/utils';
-
-formatDuration(22200);                // "22.2s"
-formatTimestamp(Date.now());          // "2025-10-13 11:08:45"
-formatTimeRange(start, end);          // "11:08:45 → 11:09:07 (22s)"
-```
-
-### 终端控制
-
-```typescript
-import {
-  clearTerminal,
-  getTerminalWidth,
-  applyColor,
-  bold,
-  italic,
-  underline,
-} from 'claude-agent-sdk-ui/utils';
-
-clearTerminal();                      // 清空终端
-const width = getTerminalWidth();     // 获取终端宽度
-const colored = applyColor('text', '#FF0000');
-const text = bold('加粗文本');
-```
-
----
-
-## 🎯 支持的消息类型
-
-本库完整支持 Claude Agent SDK 的所有消息类型:
-
-- ✅ **System 消息** - 初始化、压缩边界
-- ✅ **Assistant 消息** - 文本、思考、工具使用
-- ✅ **User 消息** - 工具结果
-- ✅ **Result 消息** - 成功、错误
-- ✅ **部分消息** - 流式输出 (开发中)
-
-### 消息内容类型
-
-- ✅ **Text** - 文本内容(支持 Markdown)
-- ✅ **Thinking** - 思考过程
-- ✅ **Tool Use** - 工具调用
-- ✅ **Tool Result** - 工具结果
-
----
-
-## 🏗️ 项目结构
-
-```
-claude-agent-sdk-demo/
-├── src/
-│   ├── types/              # TypeScript 类型定义
-│   │   ├── messages.ts     # SDK 消息类型
-│   │   ├── theme.ts        # 主题类型
-│   │   └── renderer.ts     # 渲染器类型
-│   ├── themes/             # 主题系统
-│   │   ├── dark.ts         # 深色主题
-│   │   ├── light.ts        # 浅色主题
-│   │   └── index.ts        # 主题导出
-│   ├── utils/              # 工具函数
-│   │   ├── string.ts       # 字符串处理
-│   │   ├── time.ts         # 时间格式化
-│   │   └── terminal.ts     # 终端控制
-│   ├── renderer.ts         # 核心渲染器
-│   └── index.ts            # 主入口
-├── examples/               # 示例代码
-│   ├── agent-integration/ # AgentSDK 集成示例
-│   │   ├── streaming-demo.ts
-│   │   ├── streaming-simple.ts
-│   │   └── query-demo.ts
-│   ├── components/        # 组件使用示例
-│   │   ├── ui-components-demo.ts
-│   │   └── typing-effect-demo.ts
-│   └── README.md          # 示例说明
-├── docs/                   # 用户文档
-│   ├── getting-started.md # 快速开始
-│   ├── streaming.md       # 流式渲染
-│   ├── typing-effect.md   # 打字机效果
-│   └── ui-components.md   # UI 组件
-├── dev/                    # 开发文档
-│   ├── DEVELOPMENT.md     # 开发指南
-│   ├── TODO.md            # 待办清单
-│   └── TESTING.md         # 测试指南
-├── test/                   # 测试文件
-│   ├── components/        # 组件测试
-│   ├── formatters/        # 格式化器测试
-│   ├── utils/             # 工具测试
-│   └── README.md          # 测试说明
-└── package.json
-```
-
----
-
-## 🧪 开发与测试
-
-### 开发
+### 开发环境
 
 ```bash
 # 安装依赖
 npm install
 
-# 开发模式(监听文件变化)
+# 开发模式（监听文件变化）
 npm run dev
 
 # 构建
@@ -619,64 +416,67 @@ npm test
 # 运行测试 UI
 npm run test:ui
 
-# 运行 UI 演示
-npm run demo:ui
-npm run demo:ui:streaming
-npm run demo:basic
-
 # 运行表格测试
 npm run test:table
 ```
 
 ---
 
-## 📋 待办事项
+## 🏗️ 架构设计
 
-- [ ] 完善格式化工具
-  - [ ] 高级 Markdown 渲染(marked-terminal)
-  - [ ] 代码语法高亮(cli-highlight)
-  - [ ] 表格渲染(cli-table3)
-- [ ] 实现 UI 组件
-  - [ ] Box 组件(边框盒子)
-  - [ ] Spinner 组件(加载动画)
-  - [ ] Progress 组件(进度条)
-- [ ] 实现消息处理器
-  - [ ] 独立的 Handler 类
-  - [ ] 插件化架构
-- [ ] 流式渲染支持
-- [ ] 打字机效果
-- [ ] 交互模式
-- [ ] 完善测试覆盖
-- [ ] 性能优化
+### 核心架构
+
+```
+┌─────────────────────────────────────────────┐
+│          React + Ink 组件层                  │
+│  (SystemMessage, AssistantMessage, etc.)    │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│         渲染器层 (Renderer)                  │
+│  (UIRenderer, StreamingRenderer)            │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│         消息路由层 (MessageRouter)           │
+│  (根据消息类型路由到不同组件)                │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│         UI 组件库                            │
+│  (Badge, Box, Divider, Table, etc.)         │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│         工具函数层                           │
+│  (String, Time, Terminal utils)             │
+└─────────────────────────────────────────────┘
+```
+
+### 主要特点
+
+1. **声明式组件**：使用 React 组件化方式构建终端 UI
+2. **组件复用**：所有 UI 组件都可以独立使用
+3. **主题系统**：完整的主题定制能力
+4. **类型安全**：完整的 TypeScript 类型定义
+5. **扩展性**：易于添加新的消息类型和组件
 
 ---
 
-## 📚 文档
+## 🎯 支持的消息类型
 
-### 用户文档
-
-- 🚀 [UI 快速开始](./docs/UI_QUICK_START.md) - 5分钟上手 UI 框架（推荐）
-- 📖 [快速开始](./docs/getting-started.md) - 基础使用指南
-- ✨ [UI 增强功能](./docs/ui-enhancements.md) - 详细了解新的视觉体验
-- 🎬 [流式渲染](./docs/streaming.md) - 实时显示 Claude 的响应
-- ⌨️ [打字机效果](./docs/typing-effect.md) - 优雅的逐字符输出
-- 🎨 [UI 组件](./docs/ui-components.md) - 5 个开箱即用的终端组件
-- 🔧 [UI 渲染器指南](./docs/UI_RENDERER.md) - 完整的 UI 渲染器文档
-- 📋 [UI 迁移指南](./docs/UI_MIGRATION_GUIDE.md) - 从旧版迁移到 UI
-
-### 开发文档
-
-- 🔧 [开发指南](./dev/DEVELOPMENT.md) - 技术实现和架构设计
-- 📋 [待办清单](./dev/TODO.md) - 项目进度和计划
-- 🧪 [测试指南](./dev/TESTING.md) - 测试说明和故障排除
+- ✅ **System 消息** - 会话初始化、压缩边界
+- ✅ **Assistant 消息** - 文本、思考、工具使用
+- ✅ **User 消息** - 工具结果
+- ✅ **Result 消息** - 成功、错误
+- ✅ **Partial 消息** - 流式输出
 
 ---
 
 ## 🤝 贡献
 
-欢迎贡献!请查看以下资源:
+欢迎贡献！请查看以下资源：
 
-- 📖 [开发指南](./dev/DEVELOPMENT.md) - 详细的技术设计和架构说明
 - 🐛 [问题反馈](https://github.com/yangyang0507/claude-agent-sdk-ui/issues)
 - 💡 [功能建议](https://github.com/yangyang0507/claude-agent-sdk-ui/issues/new)
 
@@ -701,17 +501,17 @@ MIT License © 2025
 - 📚 [Claude Agent SDK - TypeScript](https://docs.anthropic.com/en/api/agent-sdk/typescript)
 - 📘 [Claude Agent SDK - Python](https://docs.anthropic.com/en/api/agent-sdk/python)
 - 🌐 [Claude API 文档](https://docs.anthropic.com/)
-- 💬 [问题反馈](https://github.com/yangyang0507/claude-agent-sdk-ui/issues)
+- 💬 [GitHub Issues](https://github.com/yangyang0507/claude-agent-sdk-ui/issues)
 - 📦 [npm 包](https://www.npmjs.com/package/claude-agent-sdk-ui)
 
 ---
 
 <div align="center">
 
-**让每个开发者都能轻松构建美观、专业的 AI Agent CLI 应用!** 🚀
+**让每个开发者都能轻松构建美观、专业的 AI Agent CLI 应用！** 🚀
 
 Made with ❤️ for the Claude Agent SDK Community
 
-[⭐ Star 支持我们](https://github.com/yangyang0507/claude-agent-sdk-ui) | [📖 快速开始](./docs/quick-start-enhanced.md) | [🐛 报告问题](https://github.com/yangyang0507/claude-agent-sdk-ui/issues)
+[⭐ Star 支持我们](https://github.com/yangyang0507/claude-agent-sdk-ui) | [🐛 报告问题](https://github.com/yangyang0507/claude-agent-sdk-ui/issues)
 
 </div>

@@ -1,10 +1,12 @@
-# Claude Agent SDK UI
-
 <div align="center">
 
-**Professional CLI UI for Claude Agent SDK - Beautiful Terminal Experience in One Line of Code**
+# Claude Agent SDK UI
 
-Out-of-the-box, beautiful CLI UI rendering for Claude Agent SDK
+**Declarative Terminal UI Framework Built on React + Ink**
+
+Beautiful, out-of-the-box CLI UI rendering for Claude Agent SDK
+
+![hello.gif](./docs/resources/hello.gif)
 
 [![npm version](https://img.shields.io/npm/v/claude-agent-sdk-ui.svg)](https://www.npmjs.com/package/claude-agent-sdk-ui)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
@@ -16,17 +18,16 @@ Out-of-the-box, beautiful CLI UI rendering for Claude Agent SDK
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-- 🎨 **Zero Config** - Beautiful terminal UI out of the box
-- 🚀 **Minimal API** - Render messages with a single line of code
-- 🎭 **Theme System** - Built-in dark/light themes with full customization
-- 📊 **Rich Display** - Tool calls, code highlighting, Markdown, statistics, and more
-- 🎁 **UI Components** - Professional components: Badge, Box, Divider, Table, Spinner
+- 🎨 **React + Ink Architecture** - Build terminal UI with declarative components
+- 🚀 **Minimal API** - Full rendering in one line of code
+- 🎭 **Theme System** - Built-in claude-code and droid themes, fully customizable
+- 🎁 **Rich Component Library** - Badge, Box, Divider, Table, Spinner, Markdown, and more
+- 🌊 **Streaming Rendering** - Real-time updates with typing effect support
+- 📼 **Log Replay** - Complete session logging and replay functionality
+- 💪 **Type Safe** - Full TypeScript type definitions
 - ⚡ **High Performance** - Optimized rendering engine for handling large message volumes
-- 🌊 **Streaming** - Real-time updates with typing effect support
-- 💪 **Type Safe** - Complete TypeScript type definitions
-- 🔧 **Flexible Config** - Rich configuration options for various needs
 
 ---
 
@@ -38,13 +39,13 @@ npm install claude-agent-sdk-ui @anthropic-ai/claude-agent-sdk
 
 **Requirements:**
 - Node.js >= 18.0.0
-- @anthropic-ai/claude-agent-sdk >= 0.1.0
+- @anthropic-ai/claude-agent-sdk >= 0.1.14
 
 ---
 
 ## 🚀 Quick Start
 
-### Simplest Usage - One Line
+### Simplest Usage - One Line of Code
 
 ```typescript
 import { query } from '@anthropic-ai/claude-agent-sdk';
@@ -54,24 +55,28 @@ import { renderQuery } from 'claude-agent-sdk-ui';
 await renderQuery(query({ prompt: 'Hello, Claude!' }));
 ```
 
-### Message-by-Message Rendering (Optional)
+### Streaming Rendering - With Typing Effect
 
 ```typescript
-import { render } from 'claude-agent-sdk-ui';
+import { renderQueryStreaming } from 'claude-agent-sdk-ui';
 
-// If you need to process each message
-for await (const message of query({ prompt: 'Hello!' })) {
-  // Add custom logic here
-  await render(message);
-}
+// Streaming with typing effect
+await renderQueryStreaming(
+  query({
+    prompt: 'Explain the benefits of TypeScript',
+    options: { includePartialMessages: true }
+  }),
+  {
+    streaming: true,
+    typingEffect: true,
+    typingSpeed: 20
+  }
+);
 ```
 
-### Advanced Usage - Custom Configuration
+### Custom Configuration
 
 ```typescript
-import { query } from '@anthropic-ai/claude-agent-sdk';
-import { renderQuery } from 'claude-agent-sdk-ui';
-
 await renderQuery(
   query({
     prompt: 'Analyze the file structure of current directory',
@@ -81,160 +86,74 @@ await renderQuery(
     }
   }),
   {
-    theme: 'dark',               // Theme selection
-    showTimestamps: true,        // Show timestamps
-    showTokenUsage: true,        // Show token statistics (disabled by default)
-    showThinking: true,          // Show thinking process
-    showToolDetails: true,       // Show tool details
-    showToolContent: true,       // Reveal raw tool content fields (hidden by default)
-    maxOutputLines: 50,          // Max output lines
+    theme: 'claude-code',         // Theme selection
+    showTimestamps: true,          // Show timestamps
+    showSessionInfo: true,         // Show session info
+    showFinalResult: true,         // Show final result
+    showExecutionStats: false,     // Show execution stats
+    showTokenUsage: false,         // Show token usage
+    showThinking: true,            // Show thinking process
+    showToolDetails: true,         // Show tool details
+    maxOutputLines: 50,            // Max output lines
+    logging: {                     // Logging config
+      enabled: true,
+      logPath: './logs'
+    }
   }
 );
 ```
 
----
-
-## 🎨 Enhanced UI Preview
-
-### Session Initialization (Enhanced)
-
-```
-═══════════ 🚀 SESSION INITIALIZED ═══════════
-
-╭───────────────── 📋 Session Info ─────────────────╮
-│ Session ID: 628c0fcf                              │
-│ Model: claude-sonnet-4                            │
-│ Working Dir: /Users/username/project              │
-│ Permission: [ℹ DEFAULT]                          │
-╰───────────────────────────────────────────────────╯
-
-[✓ SUCCESS] 15 TOOLS AVAILABLE
-  🔧 Bash  🔧 Read  🔧 Edit  🔧 Write  ...
-```
-
-### Tool Execution (Enhanced)
-
-```
-[ℹ INFO] 🔧 Read
-
-┌───────────────────────────────────────────────┐
-│ {                                             │
-│   "path": "package.json"                      │
-│ }                                             │
-└───────────────────────────────────────────────┘
-
-⠋ Executing Read...  ← Dynamic spinner (TTY)
-
-[✓ SUCCESS] RESULT: SUCCESS (0.5s)
-
-┌───────────────────────────────────────────────┐
-│ {                                             │
-│   "name": "my-project",                       │
-│   "version": "1.0.0",                         │
-│   ...                                         │
-│ }                                             │
-└───────────────────────────────────────────────┘
-```
-
-### Execution Complete (Enhanced)
-
-```
-═════════ ✅ EXECUTION COMPLETE ══════════
-
-[ℹ INFO] EXECUTION STATS
-
-┌──────────────────┬────────────────────────┐
-│ Metric           │                  Value │
-├──────────────────┼────────────────────────┤
-│ Status           │             ✅ Success │
-│ Duration         │                  22.2s │
-│ Turns            │                     22 │
-│ Total Cost       │               $0.0827  │
-└──────────────────┴────────────────────────┘
-
-[ℹ TOKEN USAGE]
-
-┌──────────────────┬────────────────────────┐
-│ Type             │                  Count │
-├──────────────────┼────────────────────────┤
-│ Input Tokens     │                  8,117 │
-│ Output Tokens    │                    984 │
-│ Cache Read       │                112,928 │
-└──────────────────┴────────────────────────┘
-```
-
----
-
-## 📚 Documentation
-
-### User Documentation
-
-- 🚀 [UI Quick Start](./docs/UI_QUICK_START.md) - 5-minute guide to UI framework (Recommended)
-- 📖 [Getting Started](./docs/getting-started.md) - Basic usage guide
-- ✨ [UI Enhancements](./docs/ui-enhancements.md) - Learn about the new visual experience
-- 🎬 [Streaming](./docs/streaming.md) - Real-time Claude responses
-- ⌨️ [Typing Effect](./docs/typing-effect.md) - Elegant character-by-character output
-- 🎨 [UI Components](./docs/ui-components.md) - 5 ready-to-use terminal components
-- 🔧 [UI Renderer Guide](./docs/UI_RENDERER.md) - Complete UI renderer documentation
-- 📋 [UI Migration Guide](./docs/UI_MIGRATION_GUIDE.md) - Migrate from legacy to UI
-
-### Developer Documentation
-
-- 🔧 [Development Guide](./dev/DEVELOPMENT.md) - Technical implementation and architecture
-- 📋 [TODO](./dev/TODO.md) - Project progress and plans
-- 🧪 [Testing Guide](./dev/TESTING.md) - Testing instructions and troubleshooting
-
----
-
-## 🎯 Examples
-
-```bash
-# UI framework demo (Recommended)
-npm run demo:ui
-
-# UI streaming demo
-npm run demo:ui:streaming
-
-# Basic components demo
-npm run demo:basic
-
-# Full session demo
-npm run demo:full
-
-# Theme demos
-npm run demo:theme:claude
-npm run demo:theme:droid
-```
-
----
-
-## ⚙️ Configuration Options
-
-### RendererOptions
+### Using Renderer Class
 
 ```typescript
-interface RendererOptions {
-  // Theme configuration
-  theme?: 'dark' | 'light' | Theme;
+import { createRenderer } from 'claude-agent-sdk-ui';
 
-  // Display options
-  showTimestamps?: boolean;      // Show timestamps (default: false)
-  showTokenUsage?: boolean;      // Show token usage (default: false)
-  showThinking?: boolean;        // Show thinking process (default: false)
-  showToolDetails?: boolean;     // Show tool details (default: true)
-  showToolContent?: boolean;     // Show raw content fields in tool params (default: false)
+// Create renderer instance
+const renderer = createRenderer({
+  theme: 'droid',
+  showTokenUsage: true,
+});
 
-  // Format options
-  compact?: boolean;             // Compact mode (default: false)
-  maxOutputLines?: number;       // Max output lines (default: 100)
-  maxWidth?: number;             // Max width (default: 120)
-
-  // Advanced options
-  codeHighlight?: boolean;       // Code highlighting (default: true)
-  streaming?: boolean;           // Streaming rendering (default: false)
-  typingEffect?: boolean;        // Typing effect (default: false)
-  typingSpeed?: number;          // Typing speed (default: 20ms)
+// Render messages
+for await (const message of query({ prompt: '...' })) {
+  await renderer.render(message);
 }
+
+// Cleanup resources
+await renderer.cleanup();
+```
+
+---
+
+## 📖 Core API
+
+### Functional API
+
+```typescript
+// Render entire session
+await renderQuery(queryGenerator, options?);
+
+// Render entire session (streaming version)
+await renderQueryStreaming(queryGenerator, options?);
+
+// Render single message
+await render(message, options?);
+```
+
+### Class-based API
+
+```typescript
+// Create standard renderer
+const renderer = createRenderer(options?);
+
+// Create streaming renderer
+const streamingRenderer = createStreamingRenderer(options?);
+
+// Render message
+await renderer.render(message);
+
+// Cleanup resources
+await renderer.cleanup();
 ```
 
 ---
@@ -244,13 +163,13 @@ interface RendererOptions {
 ### Built-in Themes
 
 ```typescript
-import { darkTheme, lightTheme } from 'claude-agent-sdk-ui';
+import { claudeCodeTheme, droidTheme } from 'claude-agent-sdk-ui';
 
-// Use dark theme (default)
-const renderer = new Renderer({ theme: 'dark' });
+// Use claude-code theme (default)
+const renderer = createRenderer({ theme: 'claude-code' });
 
-// Use light theme
-const renderer = new Renderer({ theme: 'light' });
+// Use droid theme
+const renderer = createRenderer({ theme: 'droid' });
 ```
 
 ### Custom Theme
@@ -269,77 +188,202 @@ const myTheme = createTheme({
     text: '#F8F9FA',
     dim: '#868E96',
   },
+  symbols: {
+    success: '✅',
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️',
+    pending: '⏳',
+    spinner: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
+  },
+});
+
+const renderer = createRenderer({ theme: myTheme });
+```
+
+---
+
+## 🎁 UI Component Library
+
+All components are built on React + Ink and can be used directly in your projects:
+
+```typescript
+import {
+  Badge,
+  Box,
+  Divider,
+  Spinner,
+  StatusLine,
+  Markdown,
+  StreamingText,
+  Table
+} from 'claude-agent-sdk-ui';
+
+// Badge - Status labels
+<Badge type="success">SUCCESS</Badge>
+<Badge type="error">ERROR</Badge>
+<Badge type="info">INFO</Badge>
+
+// Box - Bordered container
+<Box borderStyle="round" padding={1}>
+  Content here
+</Box>
+
+// Divider - Visual separator
+<Divider style="heavy" text="SECTION TITLE" />
+
+// Spinner - Loading animation
+<Spinner type="dots" text="Loading..." />
+
+// StatusLine - Status line
+<StatusLine
+  status="success"
+  label="Read"
+  message="File loaded"
+  duration={500}
+/>
+
+// Markdown - Markdown rendering
+<Markdown>{markdownContent}</Markdown>
+
+// StreamingText - Streaming text
+<StreamingText
+  text="Hello, world!"
+  speed={20}
+  onComplete={() => {}}
+/>
+
+// Table - Data table
+<Table
+  headers={['Name', 'Value']}
+  rows={[
+    ['Foo', 'Bar'],
+    ['Baz', 'Qux']
+  ]}
+/>
+```
+
+---
+
+## 📼 Logging & Replay
+
+### Enable Logging
+
+```typescript
+await renderQuery(
+  query({ prompt: '...' }),
+  {
+    logging: {
+      enabled: true,
+      logPath: './logs',
+      fileNameFormat: 'session-{sessionId}-{timestamp}.jsonl',
+      verbose: true
+    }
+  }
+);
+```
+
+Logs are saved in JSONL format (one JSON object per line) with complete message data and timestamps.
+
+### Replay Logs
+
+Use the CLI tool to replay previous sessions:
+
+```bash
+# Basic usage
+npm run replay -- logs/session-xxx.jsonl
+
+# Use custom theme
+npm run replay -- logs/session-xxx.jsonl --theme droid
+
+# Realtime mode, 2x speed
+npm run replay -- logs/session-xxx.jsonl --realtime --speed 2
+
+# Streaming rendering with thinking
+npm run replay -- logs/session-xxx.jsonl --streaming --show-thinking
+
+# Fixed delay mode, 500ms between messages
+npm run replay -- logs/session-xxx.jsonl --fixed-delay 500
+```
+
+Use in code:
+
+```typescript
+import { replayLog } from 'claude-agent-sdk-ui';
+
+await replayLog('logs/session-xxx.jsonl', {
+  theme: 'droid',
+  realtime: true,
+  speed: 2,
+  showThinking: true,
+  showToolDetails: true
 });
 ```
 
 ---
 
-## 📖 API Documentation
+## ⚙️ Configuration Options
 
-### Main Exports
+### RendererOptions
 
 ```typescript
-// Functions
-export function renderQuery(queryGenerator, options?): Promise<void>;
-export function render(message, options?): Promise<void>;
-export function createRenderer(options?): Renderer;
-export function createTheme(options): Theme;
-export function getTheme(input?): Theme;
+interface RendererOptions {
+  // Theme configuration
+  theme?: 'claude-code' | 'droid' | Theme;
 
-// Classes
-export class Renderer {
-  constructor(options?);
-  render(message): Promise<void>;
-  getState(): RendererState;
-  reset(): void;
+  // Display options
+  showTimestamps?: boolean;          // Show timestamps (default: false)
+  showSessionInfo?: boolean;         // Show session info (default: true)
+  showFinalResult?: boolean;         // Show final result (default: true)
+  showExecutionStats?: boolean;      // Show execution stats (default: false)
+  showTokenUsage?: boolean;          // Show token usage (default: false)
+  showThinking?: boolean;            // Show thinking process (default: false)
+  showToolDetails?: boolean;         // Show tool details (default: true)
+  showToolContent?: boolean;         // Show content field in tool params (default: false)
+
+  // Format options
+  compact?: boolean;                 // Compact mode (default: false)
+  maxOutputLines?: number;           // Max output lines (default: 100)
+  maxWidth?: number;                 // Max width (default: 120)
+  codeHighlight?: boolean;           // Code highlighting (default: true)
+
+  // Streaming options
+  streaming?: boolean;               // Enable streaming (default: false)
+  typingEffect?: boolean;            // Typing effect (default: false)
+  typingSpeed?: number;              // Typing speed (default: 20ms)
+
+  // Logging options
+  logging?: {
+    enabled: boolean;                // Enable logging
+    logPath?: string;                // Log directory (default: './logs')
+    fileNameFormat?: string;         // Filename format
+    verbose?: boolean;               // Verbose output
+  };
 }
-
-// Themes
-export { darkTheme, lightTheme };
-
-// UI Components
-export { Box, Badge, Divider, Spinner, Progress };
-export { createTableFormatter } from './formatters/table.js';
-
-// Types
-export type { SDKMessage, RendererOptions, Theme, ... };
 ```
 
 ---
 
-## 💡 UI Components
+## 📚 Examples
 
-Use the built-in UI components directly:
+The project includes multiple examples demonstrating different use cases:
 
-```typescript
-import { Box, Badge, Divider, createTableFormatter } from 'claude-agent-sdk-ui';
+```bash
+# Simple demo
+npm run demo
 
-// Badge
-console.log(Badge.success('COMPLETED'));
-console.log(Badge.error('FAILED'));
-console.log(Badge.info('PROCESSING'));
-
-// Box
-const box = new Box({ borderStyle: 'round', padding: 1 });
-console.log(box.render('Important message'));
-
-// Divider
-const divider = new Divider({ style: 'double', text: 'SECTION' });
-console.log(divider.render());
-
-// Table
-const table = createTableFormatter({
-  columns: [
-    { header: 'Name', key: 'name', width: 20 },
-    { header: 'Value', key: 'value', width: 30 },
-  ],
-});
-console.log(table.render(data, theme));
+# Streaming rendering demo
+npm run demo:streaming
 ```
+
+Example files:
+- `examples/agent-integration/streaming-simple.ts` - Simplest streaming example
+- `examples/agent-integration/enhanced-ui-demo.ts` - UI components showcase
+- `examples/agent-integration/streaming-demo.ts` - Full streaming example
 
 ---
 
-## 🧪 Development
+## 🛠️ Development
 
 ### Setup
 
@@ -372,22 +416,67 @@ npm test
 # Run test UI
 npm run test:ui
 
-# Run UI demos
-npm run demo:ui
-npm run demo:ui:streaming
-npm run demo:basic
-
-# Run table formatter test
+# Run table test
 npm run test:table
 ```
 
 ---
 
+## 🏗️ Architecture
+
+### Core Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│       React + Ink Component Layer           │
+│  (SystemMessage, AssistantMessage, etc.)    │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│         Renderer Layer                       │
+│  (UIRenderer, StreamingRenderer)            │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│      Message Router Layer                    │
+│  (Routes messages to components)            │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│         UI Component Library                 │
+│  (Badge, Box, Divider, Table, etc.)         │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│         Utility Layer                        │
+│  (String, Time, Terminal utils)             │
+└─────────────────────────────────────────────┘
+```
+
+### Key Characteristics
+
+1. **Declarative Components**: Build terminal UI using React components
+2. **Component Reusability**: All UI components can be used independently
+3. **Theme System**: Full theme customization capability
+4. **Type Safety**: Complete TypeScript type definitions
+5. **Extensibility**: Easy to add new message types and components
+
+---
+
+## 🎯 Supported Message Types
+
+- ✅ **System Messages** - Session initialization, compression boundaries
+- ✅ **Assistant Messages** - Text, thinking, tool usage
+- ✅ **User Messages** - Tool results
+- ✅ **Result Messages** - Success, errors
+- ✅ **Partial Messages** - Streaming output
+
+---
+
 ## 🤝 Contributing
 
-Contributions are welcome! Please check out:
+Contributions are welcome! Check out:
 
-- 📖 [Development Guide](./dev/DEVELOPMENT.md) - Detailed technical design and architecture
 - 🐛 [Issue Tracker](https://github.com/yangyang0507/claude-agent-sdk-ui/issues)
 - 💡 [Feature Requests](https://github.com/yangyang0507/claude-agent-sdk-ui/issues/new)
 
@@ -419,10 +508,10 @@ MIT License © 2025
 
 <div align="center">
 
-**Make every developer easily build beautiful, professional AI Agent CLI applications!** 🚀
+**Empower every developer to build beautiful, professional AI Agent CLI applications!** 🚀
 
 Made with ❤️ for the Claude Agent SDK Community
 
-[⭐ Star us](https://github.com/yangyang0507/claude-agent-sdk-ui) | [📖 Documentation](./docs/UI_QUICK_START.md) | [🐛 Report Issues](https://github.com/yangyang0507/claude-agent-sdk-ui/issues)
+[⭐ Star us](https://github.com/yangyang0507/claude-agent-sdk-ui) | [🐛 Report Issues](https://github.com/yangyang0507/claude-agent-sdk-ui/issues)
 
 </div>

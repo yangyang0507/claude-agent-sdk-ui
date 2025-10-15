@@ -79,7 +79,7 @@ export const ToolResultMessage: React.FC<ToolResultMessageProps> = ({
                       color={textColor}
                       dimColor={!is_error}
                     >
-                      {lineIndex === 0 ? ' ' : '   '}{line}
+                      {' '}{line}
                     </Text>
                   ))}
                   {shouldCollapse && (

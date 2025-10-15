@@ -17,6 +17,7 @@ dist/
 
 # Docs
 docs/agent-sdk-docs/
+demos/
 
 # Build outputs
 tsup-build-*.log
@@ -119,3 +120,4 @@ Thumbs.db
 *.bak
 *.backup
 logs/
+*.tape
