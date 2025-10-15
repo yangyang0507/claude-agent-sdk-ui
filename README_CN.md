@@ -369,17 +369,18 @@ interface RendererOptions {
 项目包含多个示例代码，展示不同的使用场景：
 
 ```bash
-# 简单示例
+# 简单示例（标准渲染）
 npm run demo
 
-# 流式渲染示例
+# 流式渲染示例（实时流式渲染 with 打字效果）
 npm run demo:streaming
 ```
 
 查看示例代码：
-- `examples/agent-integration/streaming-simple.ts` - 最简单的流式渲染
-- `examples/agent-integration/enhanced-ui-demo.ts` - UI 组件集成演示
-- `examples/agent-integration/streaming-demo.ts` - 完整的流式渲染示例
+- `examples/agent-integration/hello-demo.ts` - 最简单的标准渲染示例
+- `examples/agent-integration/hello-streaming-demo.ts` - 简单的流式渲染，实时更新
+- `examples/agent-integration/sample-demo.ts` - 完整的流式渲染演示，包含日志记录和思考显示
+- `examples/agent-integration/original-demo.ts` - 原生 Claude Agent SDK 使用（对比参考）
 
 ---
 

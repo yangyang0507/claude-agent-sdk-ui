@@ -369,17 +369,18 @@ interface RendererOptions {
 The project includes multiple examples demonstrating different use cases:
 
 ```bash
-# Simple demo
+# Simple demo (standard rendering)
 npm run demo
 
-# Streaming rendering demo
+# Streaming demo (real-time streaming with typing effect)
 npm run demo:streaming
 ```
 
 Example files:
-- `examples/agent-integration/streaming-simple.ts` - Simplest streaming example
-- `examples/agent-integration/enhanced-ui-demo.ts` - UI components showcase
-- `examples/agent-integration/streaming-demo.ts` - Full streaming example
+- `examples/agent-integration/hello-demo.ts` - Simplest standard rendering example
+- `examples/agent-integration/hello-streaming-demo.ts` - Simple streaming rendering with real-time updates
+- `examples/agent-integration/sample-demo.ts` - Complete streaming demo with logging and thinking display
+- `examples/agent-integration/original-demo.ts` - Raw Claude Agent SDK usage (for comparison)
 
 ---
 
