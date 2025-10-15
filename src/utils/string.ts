@@ -202,3 +202,75 @@ export function pluralize(count: number, singular: string, plural?: string): str
   }
   return `${count} ${plural || singular + 's'}`;
 }
+
+/**
+ * 解析文本中的 thinking 标签
+ *
+ * @param text - 原始文本
+ * @param thinkingTags - thinking 标签数组，默认为 ['thinking', 'antml:thinking']
+ * @returns 解析后的内容数组，包含 thinking 和 text 部分
+ */
+export interface ParsedThinkingContent {
+  type: 'thinking' | 'text';
+  content: string;
+}
+
+export function parseThinkingTags(
+  text: string,
+  thinkingTags: string[] = ['thinking', 'antml:thinking']
+): ParsedThinkingContent[] {
+  const results: ParsedThinkingContent[] = [];
+
+  // 为所有 thinking 标签创建正则表达式
+  // 匹配 <tag>...</tag> 或 <tag/>
+  const tagPatterns = thinkingTags.map(tag =>
+    `<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>|<${tag}\\s*/>`
+  );
+
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  // 创建正则以支持 exec 方法
+  const regex = new RegExp(`(${tagPatterns.join('|')})`, 'gi');
+
+  while ((match = regex.exec(text)) !== null) {
+    // 添加 thinking 标签之前的文本
+    if (match.index > lastIndex) {
+      const beforeText = text.substring(lastIndex, match.index);
+      if (beforeText.trim()) {
+        results.push({ type: 'text', content: beforeText });
+      }
+    }
+
+    // 提取 thinking 内容（从捕获组中获取）
+    // 找到第一个非空的捕获组作为 thinking 内容
+    let thinkingContent = '';
+    for (let i = 1; i < match.length; i++) {
+      if (match[i] !== undefined && match[i] !== match[0]) {
+        thinkingContent = match[i];
+        break;
+      }
+    }
+
+    if (thinkingContent.trim()) {
+      results.push({ type: 'thinking', content: thinkingContent });
+    }
+
+    lastIndex = regex.lastIndex;
+  }
+
+  // 添加最后剩余的文本
+  if (lastIndex < text.length) {
+    const remainingText = text.substring(lastIndex);
+    if (remainingText.trim()) {
+      results.push({ type: 'text', content: remainingText });
+    }
+  }
+
+  // 如果没有匹配到任何标签，返回原始文本
+  if (results.length === 0 && text.trim()) {
+    results.push({ type: 'text', content: text });
+  }
+
+  return results;
+}

@@ -20,6 +20,7 @@ export type {
   SDKUserMessage,
   SDKResultMessage,
 } from './types/messages.js';
+export type { LoggerOptions, LogEntry } from './utils/logger.js';
 
 // ============================================
 // 主题系统
@@ -59,6 +60,7 @@ export {
   summarizeToolInput,
   extractToolDetailLines,
 } from './utils/tools.js';
+export { SessionLogger, createLogger } from './utils/logger.js';
 
 // ============================================
 // API Functions
@@ -124,7 +126,7 @@ export async function renderQuery(
     }
   } finally {
     // 清理资源
-    renderer.cleanup();
+    await renderer.cleanup();
   }
 }
 
@@ -201,16 +203,16 @@ export async function renderQueryStreaming(
     }
   } finally {
     // 清理资源
-    renderer.cleanup();
+    await renderer.cleanup();
   }
 }
 
 /**
  * 重置默认渲染器
  */
-export function resetDefaultRenderer(): void {
+export async function resetDefaultRenderer(): Promise<void> {
   if (defaultRenderer) {
-    defaultRenderer.cleanup();
+    await defaultRenderer.cleanup();
     defaultRenderer = null;
   }
 }

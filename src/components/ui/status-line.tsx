@@ -34,7 +34,7 @@ export const StatusLine: React.FC<StatusLineProps> = ({
   } as const;
 
   const indicatorColor = color ?? colorMap[status] ?? theme.colors.primary;
-  const indicatorSymbol = symbol ?? theme.symbols.aiPrefix ?? theme.symbols.bullet ?? '•';
+  const indicatorSymbol = symbol ?? theme.symbols.aiPrefix ?? theme.symbols.bullet ?? '●';
   const labelColor = status === 'default' ? theme.colors.text : indicatorColor;
 
   return (

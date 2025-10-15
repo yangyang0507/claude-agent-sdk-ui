@@ -29,7 +29,7 @@ export const claudeCodeTheme: Theme = {
     info: 'ℹ',
     pending: '⏺',
     spinner: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
-    bullet: '•',
+    bullet: '●',
     arrow: '→',
     thinking: '💭',
     tool: '🔧',

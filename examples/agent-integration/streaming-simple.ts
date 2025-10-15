@@ -20,8 +20,9 @@ async function main() {
       },
     }),
     {
-      streaming: true, // 启用流式渲染
-      showTokenUsage: false, // 默认不显示 token 信息
+      logging: {
+        enabled: true
+      }
     }
   );
 

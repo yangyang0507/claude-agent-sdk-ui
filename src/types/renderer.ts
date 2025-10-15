@@ -3,6 +3,7 @@
  */
 
 import type { Theme, ThemeInput } from './theme.js';
+import type { LoggerOptions } from '../utils/logger.js';
 
 /**
  * Token 使用统计 (简化版,用于内部统计)
@@ -70,6 +71,9 @@ export interface RendererOptions {
 
   /** 终端最大宽度 */
   maxWidth?: number;
+
+  /** 日志配置 */
+  logging?: LoggerOptions;
 }
 
 /**

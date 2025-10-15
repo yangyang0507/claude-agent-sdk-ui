@@ -118,3 +118,4 @@ Thumbs.db
 *.temp
 *.bak
 *.backup
+logs/

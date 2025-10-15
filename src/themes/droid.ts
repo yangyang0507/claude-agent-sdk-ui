@@ -29,7 +29,7 @@ export const droidTheme: Theme = {
     info: 'ℹ',
     pending: '○',
     spinner: ['◐', '◓', '◑', '◒'], // 圆形旋转动画
-    bullet: '•',
+    bullet: '●',
     arrow: '↳',
     thinking: '💭',
     tool: '⚙',

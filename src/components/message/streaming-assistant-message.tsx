@@ -12,6 +12,7 @@ import { StatusLine } from '../ui/status-line.js';
 import { isTextContent, isThinkingContent, isToolUseContent } from '../../types/messages.js';
 import { sanitizeToolInput, summarizeToolInput, extractToolDetailLines } from '../../utils/tools.js';
 import type { ToolExecutionStateMap } from '../../utils/tool-states.js';
+import { parseThinkingTags } from '../../utils/string.js';
 
 export interface StreamingAssistantMessageProps {
   /**
@@ -124,32 +125,68 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
 
         // 文本内容
         if (isTextContent(item)) {
-          // 如果是 thinking，根据配置决定是否显示
-          const text = item.text;
+          // 解析文本中的 thinking 标签
+          const parsedContent = parseThinkingTags(item.text);
 
           return (
-            <StatusLine
-              key={index}
-              marginBottom={1}
-              label={
-                isCurrentBlock && streamingEnabled ? (
-                  <StreamingText
-                    text={text}
-                    speed={typingSpeed}
-                    enabled={streamingEnabled}
-                    onComplete={handleBlockComplete}
+            <React.Fragment key={index}>
+              {parsedContent.map((parsed, parsedIndex) => {
+                const isParsedCurrent = isCurrentBlock && parsedIndex === parsedContent.length - 1;
+
+                if (parsed.type === 'thinking') {
+                  // 如果是 thinking 内容，根据 showThinking 选项决定是否显示
+                  if (!showThinking) {
+                    // 如果不显示 thinking，且这是当前块，需要触发完成回调
+                    if (isParsedCurrent && streamingEnabled) {
+                      setTimeout(handleBlockComplete, 0);
+                    }
+                    return null;
+                  }
+
+                  // 如果这是当前正在流式的 thinking 内容，触发完成（thinking 不需要流式效果）
+                  if (isParsedCurrent && streamingEnabled) {
+                    setTimeout(handleBlockComplete, 0);
+                  }
+
+                  return (
+                    <StatusLine
+                      key={`${index}-${parsedIndex}`}
+                      status="active"
+                      color={theme.colors.dim}
+                      symbol={thinkingSymbol}
+                      marginBottom={1}
+                      label={<Text dimColor>{parsed.content}</Text>}
+                    />
+                  );
+                }
+
+                // 普通文本内容
+                return (
+                  <StatusLine
+                    key={`${index}-${parsedIndex}`}
+                    marginBottom={1}
+                    label={
+                      isParsedCurrent && streamingEnabled ? (
+                        <StreamingText
+                          text={parsed.content}
+                          speed={typingSpeed}
+                          enabled={streamingEnabled}
+                          onComplete={handleBlockComplete}
+                        />
+                      ) : (
+                        <Markdown
+                          theme={theme}
+                          highlightCode={true}
+                          maxWidth={theme.layout.maxWidth ?? 120}
+                        >
+                          {parsed.content}
+                        </Markdown>
+                      )
+                    }
                   />
-                ) : (
-                  <Markdown
-                    theme={theme}
-                    highlightCode={true}
-                    maxWidth={theme.layout.maxWidth ?? 120}
-                  >
-                    {text}
-                  </Markdown>
-                )
-              }
-            />
+                );
+              })}
+            </React.Fragment>
           );
         }
 

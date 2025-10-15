@@ -10,7 +10,8 @@ import { ThemeProvider } from '../hooks/use-theme.js';
 import { MessageRouter } from './message-router.js';
 import { deriveToolExecutionState } from '../utils/tool-states.js';
 import { StatusLine } from '../components/ui/status-line.js';
-import { isAssistantMessage, isUserMessage, isResultMessage } from '../types/messages.js';
+import { isAssistantMessage, isUserMessage, isResultMessage, isSystemInitMessage } from '../types/messages.js';
+import { SessionLogger } from '../utils/logger.js';
 
 interface UIRendererAppProps {
   messages: SDKMessage[];
@@ -85,9 +86,16 @@ export class UIRenderer {
   private messages: SDKMessage[] = [];
   private options: Required<RendererOptions>;
   private app: ReturnType<typeof render> | null = null;
+  private logger: SessionLogger | null = null;
+  private currentSessionId: string | null = null;
 
   constructor(options: RendererOptions = {}) {
     this.options = this.normalizeOptions(options);
+
+    // 初始化日志记录器
+    if (this.options.logging && this.options.logging.enabled) {
+      this.logger = new SessionLogger(this.options.logging);
+    }
   }
 
   /**
@@ -111,6 +119,7 @@ export class UIRenderer {
       showToolDetails: options.showToolDetails ?? true,
       showToolContent: options.showToolContent ?? false,
       maxWidth: options.maxWidth ?? 120,
+      logging: options.logging ?? { enabled: false },
     };
   }
 
@@ -119,6 +128,16 @@ export class UIRenderer {
    */
   async render(message: SDKMessage): Promise<void> {
     this.messages.push(message);
+
+    // 从 system init 消息中提取 session ID
+    if (isSystemInitMessage(message) && 'session_id' in message && message.session_id) {
+      this.currentSessionId = message.session_id;
+    }
+
+    // 记录日志
+    if (this.logger && this.currentSessionId) {
+      await this.logger.log(message, this.currentSessionId);
+    }
 
     // 创建新数组以触发 React 重新渲染
     const messagesCopy = [...this.messages];
@@ -146,19 +165,40 @@ export class UIRenderer {
   /**
    * 清理资源
    */
-  cleanup(): void {
+  async cleanup(): Promise<void> {
     if (this.app) {
       this.app.unmount();
       this.app = null;
     }
+
+    // 关闭日志记录器
+    if (this.logger) {
+      await this.logger.close();
+    }
+
     this.messages = [];
+    this.currentSessionId = null;
   }
 
   /**
    * 重置渲染器状态
    */
-  reset(): void {
-    this.cleanup();
+  async reset(): Promise<void> {
+    await this.cleanup();
+  }
+
+  /**
+   * 获取日志记录器
+   */
+  getLogger(): SessionLogger | null {
+    return this.logger;
+  }
+
+  /**
+   * 获取当前日志文件路径
+   */
+  getLogFilePath(): string | null {
+    return this.logger?.getLogFilePath() ?? null;
   }
 }
 

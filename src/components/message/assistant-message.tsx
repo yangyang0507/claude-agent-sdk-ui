@@ -19,6 +19,7 @@ import {
 } from '../../utils/tools.js';
 import { StatusLine } from '../ui/status-line.js';
 import type { ToolExecutionStateMap } from '../../utils/tool-states.js';
+import { parseThinkingTags } from '../../utils/string.js';
 
 export interface AssistantMessageProps {
   message: SDKAssistantMessage;
@@ -58,16 +59,43 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
       {content.map((item: any, index: number) => {
         // 1. 文本内容
         if (isTextContent(item)) {
+          // 解析文本中的 thinking 标签
+          const parsedContent = parseThinkingTags(item.text);
+
           return (
-            <StatusLine
-              key={index}
-              marginBottom={1}
-              label={
-                <Markdown theme={theme} highlightCode={true} maxWidth={theme.layout.maxWidth ?? 120}>
-                  {item.text}
-                </Markdown>
-              }
-            />
+            <React.Fragment key={index}>
+              {parsedContent.map((parsed, parsedIndex) => {
+                if (parsed.type === 'thinking') {
+                  // 如果是 thinking 内容，根据 showThinking 选项决定是否显示
+                  if (!showThinking) {
+                    return null;
+                  }
+                  return (
+                    <StatusLine
+                      key={`${index}-${parsedIndex}`}
+                      status="active"
+                      color={theme.colors.dim}
+                      symbol={theme.symbols?.thinking || theme.symbols.aiPrefix || '…'}
+                      marginBottom={1}
+                      label={<Text dimColor>{parsed.content}</Text>}
+                    />
+                  );
+                }
+
+                // 普通文本内容
+                return (
+                  <StatusLine
+                    key={`${index}-${parsedIndex}`}
+                    marginBottom={1}
+                    label={
+                      <Markdown theme={theme} highlightCode={true} maxWidth={theme.layout.maxWidth ?? 120}>
+                        {parsed.content}
+                      </Markdown>
+                    }
+                  />
+                );
+              })}
+            </React.Fragment>
           );
         }
 

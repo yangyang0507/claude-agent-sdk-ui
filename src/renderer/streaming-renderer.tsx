@@ -200,6 +200,7 @@ export class StreamingRenderer {
       showToolDetails: options.showToolDetails ?? true,
       showToolContent: options.showToolContent ?? false,
       maxWidth: options.maxWidth ?? 120,
+      logging: options.logging ?? { enabled: false },
     };
   }
 
