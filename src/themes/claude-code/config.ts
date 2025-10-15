@@ -10,7 +10,7 @@ import { StreamingAssistantMessage } from './components/streaming-assistant-mess
 import { ToolResultMessage } from './components/tool-result-message.js';
 import { SystemMessage } from './components/system-message.js';
 import { FinalResult } from './components/final-result.js';
-import { AppLayout } from './app-layout.js';
+import { AppLayout } from './components/app-layout.js';
 
 export const claudeCodeTheme: Theme = {
   name: 'claude-code',

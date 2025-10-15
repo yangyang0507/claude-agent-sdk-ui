@@ -56,18 +56,18 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
   const toolOutputSymbol = theme.symbols.toolOutput || '⎿';
   const thinkingSymbol = theme.symbols?.thinking || theme.symbols.aiPrefix || '…';
 
-  // 渲染多行 thinking 内容的辅助函数
+  // 渲染多行 thinking 内容的辅助函数 - Droid 风格（橙色表示思考中）
   const renderThinkingContent = (thinkingText: string, key: string | number) => {
     const lines = thinkingText.split('\n').filter(line => line.trim().length > 0);
     if (lines.length === 0) return null;
 
     return (
       <Box key={key} flexDirection="column" marginBottom={1}>
-        {/* 第一行：图标 + 文本 */}
+        {/* 第一行：图标 + 文本（橙色 - 表示进行中状态） */}
         <Box flexDirection="row">
-          <Text color={theme.colors.dim}>{thinkingSymbol}</Text>
+          <Text color={theme.colors.primary}>{thinkingSymbol}</Text>
           <Box marginLeft={1}>
-            <Text dimColor>{lines[0]}</Text>
+            <Text color={theme.colors.primary}>{lines[0]}</Text>
           </Box>
         </Box>
         {/* 后续行：缩进对齐 */}
@@ -75,7 +75,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
           <Box key={lineIndex} flexDirection="row">
             <Text>{' '.repeat(thinkingSymbol.length)}</Text>
             <Box marginLeft={1}>
-              <Text dimColor>{line}</Text>
+              <Text color={theme.colors.primary}>{line}</Text>
             </Box>
           </Box>
         ))}
@@ -108,17 +108,16 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
                   return renderThinkingContent(parsed.content, `${index}-${parsedIndex}`);
                 }
 
-                // 普通文本内容
+                // 普通文本内容 - Droid 风格（六芒星前缀 - 青色）
                 return (
-                  <StatusLine
-                    key={`${index}-${parsedIndex}`}
-                    marginBottom={1}
-                    label={
+                  <Box key={`${index}-${parsedIndex}`} flexDirection="row" marginBottom={1}>
+                    <Text color={theme.colors.secondary}>{theme.symbols.aiPrefix}</Text>
+                    <Box marginLeft={1} flexGrow={1}>
                       <Markdown theme={theme} highlightCode={true} maxWidth={theme.layout.maxWidth ?? 120}>
                         {parsed.content}
                       </Markdown>
-                    }
-                  />
+                    </Box>
+                  </Box>
                 );
               })}
             </React.Fragment>
@@ -130,7 +129,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
           return renderThinkingContent(item.thinking, index);
         }
 
-        // 3. 工具调用
+        // 3. 工具调用 - Droid 风格（橙色标签 + 箭头）
         if (isToolUseContent(item)) {
           const sanitizedInput = sanitizeToolInput(item.input, {
             showContent: showToolContent,
@@ -141,29 +140,30 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
           const status = toolState?.status ?? 'pending';
           const isError = status === 'error';
           const isPending = status === 'pending';
-          const displayText = summary ? `${item.name}(${summary})` : item.name;
-          const tone = isError ? 'error' : isPending ? 'active' : 'success';
+          const displayText = summary ? `${summary}` : '';
 
           return (
             <React.Fragment key={index}>
-              <StatusLine
-                status={tone}
-                spinner={isPending}
-                marginBottom={0}
-                label={
-                  <Text color={isError ? theme.colors.error : theme.colors.text}>{displayText}</Text>
-                }
-              />
+              {/* 工具调用行 - 橙色标签 */}
+              <Box flexDirection="row" marginBottom={0}>
+                <Box marginRight={1} paddingX={1} backgroundColor={theme.colors.primary}>
+                  <Text color="#000000" bold>{item.name.toUpperCase()}</Text>
+                </Box>
+                <Text color={theme.colors.dim}>
+                  {displayText}
+                  {isPending && ' ...'}
+                </Text>
+              </Box>
 
+              {/* 工具详情 - 使用箭头符号 */}
               {details.map((detail, detailIndex) => (
-                <StatusLine
-                  key={`${index}-detail-${detailIndex}`}
-                  indentLevel={1}
-                  symbol={toolOutputSymbol}
-                  color={theme.colors.dim}
+                <Box 
+                  key={`${index}-detail-${detailIndex}`} 
+                  flexDirection="row" 
                   marginBottom={detailIndex === details.length - 1 ? 1 : 0}
-                  label={<Text dimColor>{detail}</Text>}
-                />
+                >
+                  <Text color={theme.colors.dim}>{toolOutputSymbol} {detail}</Text>
+                </Box>
               ))}
             </React.Fragment>
           );

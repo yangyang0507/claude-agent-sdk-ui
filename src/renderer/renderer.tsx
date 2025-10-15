@@ -112,7 +112,7 @@ export class UIRenderer {
       theme: options.theme ?? 'claude-code',
       showTimestamps: options.showTimestamps ?? false,
       showSessionInfo: options.showSessionInfo ?? true,
-      showFinalResult: options.showFinalResult ?? true,
+      showFinalResult: options.showFinalResult ?? false,
       showExecutionStats: options.showExecutionStats ?? false,
       showTokenUsage: options.showTokenUsage ?? false,
       compact: options.compact ?? false,

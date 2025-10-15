@@ -33,7 +33,7 @@ export interface FinalResultProps {
  */
 export const FinalResult: React.FC<FinalResultProps> = ({
   message,
-  showFinalResult = true,
+  showFinalResult = false,
   showExecutionStats = false,
   showTokenUsage = false,
 }) => {

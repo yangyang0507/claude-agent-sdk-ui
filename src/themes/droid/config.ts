@@ -10,22 +10,22 @@ import { StreamingAssistantMessage } from './components/streaming-assistant-mess
 import { ToolResultMessage } from './components/tool-result-message.js';
 import { SystemMessage } from './components/system-message.js';
 import { FinalResult } from './components/final-result.js';
-import { AppLayout } from './app-layout.js';
+import { AppLayout } from './components/app-layout.js';
 
 export const droidTheme: Theme = {
   name: 'droid',
 
   colors: {
-    primary: '#00D9FF', // 青色 - Droid 品牌色
-    secondary: '#B794F6', // 紫色 - 副标题
-    success: '#00E676', // 亮绿色 - 成功消息
-    error: '#FF5252', // 亮红色 - 错误消息
+    primary: '#FEB17F', // 橙色 - Droid 主色（工具标签、thinking）
+    secondary: '#DA793C', // 亮橙色 - 副标题和边框
+    success: '#A5E075', // 亮绿色 - 成功消息
+    error: '#FF616E', // 亮红色 - 错误消息
     warning: '#FFD740', // 亮黄色 - 警告消息
-    info: '#40C4FF', // 亮蓝色 - 信息消息
-    text: '#F5F5F5', // 白色 - 常规文本
-    dim: '#90A4AE', // 蓝灰色 - 次要信息
-    background: '#0D1117', // 极深色背景
-    highlight: '#FFA726', // 橙色 - 高亮
+    info: '#DA793C', // 橙色 - "进行中"状态（active/streaming/thinking）
+    text: '#ABB2BF', // 浅灰色 - 常规文本
+    dim: '#A49C97', // 暗灰色 - 次要信息
+    background: '#282C34', // 极深色背景
+    highlight: '#DA793C', // 橙色 - 高亮（与主色一致）
   },
 
   symbols: {

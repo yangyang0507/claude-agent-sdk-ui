@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { Box } from 'ink';
-import type { AppLayoutProps } from '../../types/theme.js';
+import type { AppLayoutProps } from '../../../types/theme.js';
 
 /**
  * Droid 应用布局组件
