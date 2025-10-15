@@ -139,6 +139,7 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
             status="active"
             spinner={true}
             label={waitingState.message}
+            marginBottom={1}
           />
         )}
       </Box>
@@ -184,7 +185,7 @@ export class StreamingRenderer {
    */
   private normalizeOptions(options: RendererOptions): Required<RendererOptions> {
     return {
-      theme: options.theme ?? 'dark',
+      theme: options.theme ?? 'claude-code',
       showTimestamps: options.showTimestamps ?? false,
       showSessionInfo: options.showSessionInfo ?? true,
       showFinalResult: options.showFinalResult ?? true,

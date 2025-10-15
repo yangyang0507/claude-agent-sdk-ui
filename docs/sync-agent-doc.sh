@@ -12,19 +12,19 @@ TARGET_DIR="${SCRIPT_DIR}/agent-sdk-docs"
 
 # 文档 URL 列表
 docs=(
-https://docs.claude.com/en/api/agent-sdk/cost-tracking.md
-https://docs.claude.com/en/api/agent-sdk/custom-tools.md
-https://docs.claude.com/en/api/agent-sdk/mcp.md
-https://docs.claude.com/en/api/agent-sdk/modifying-system-prompts.md
-https://docs.claude.com/en/api/agent-sdk/overview.md
-https://docs.claude.com/en/api/agent-sdk/permissions.md
-https://docs.claude.com/en/api/agent-sdk/python.md
-https://docs.claude.com/en/api/agent-sdk/sessions.md
-https://docs.claude.com/en/api/agent-sdk/slash-commands.md
-https://docs.claude.com/en/api/agent-sdk/streaming-vs-single-mode.md
-https://docs.claude.com/en/api/agent-sdk/subagents.md
-https://docs.claude.com/en/api/agent-sdk/todo-tracking.md
-https://docs.claude.com/en/api/agent-sdk/typescript.md
+    https://docs.claude.com/en/api/agent-sdk/cost-tracking.md
+    https://docs.claude.com/en/api/agent-sdk/custom-tools.md
+    https://docs.claude.com/en/api/agent-sdk/mcp.md
+    https://docs.claude.com/en/api/agent-sdk/modifying-system-prompts.md
+    https://docs.claude.com/en/api/agent-sdk/overview.md
+    https://docs.claude.com/en/api/agent-sdk/permissions.md
+    https://docs.claude.com/en/api/agent-sdk/python.md
+    https://docs.claude.com/en/api/agent-sdk/sessions.md
+    https://docs.claude.com/en/api/agent-sdk/slash-commands.md
+    https://docs.claude.com/en/api/agent-sdk/streaming-vs-single-mode.md
+    https://docs.claude.com/en/api/agent-sdk/subagents.md
+    https://docs.claude.com/en/api/agent-sdk/todo-tracking.md
+    https://docs.claude.com/en/api/agent-sdk/typescript.md
 )
 
 echo -e "${YELLOW}开始同步 Claude Agent SDK 文档...${NC}"

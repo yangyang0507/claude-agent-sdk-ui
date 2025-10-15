@@ -20,6 +20,7 @@ async function main() {
       },
     }),
     {
+      showThinking: true,
       logging: {
         enabled: true
       }

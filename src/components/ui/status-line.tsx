@@ -13,6 +13,7 @@ export interface StatusLineProps {
   symbol?: string;
   color?: string;
   marginBottom?: number;
+  alignItems?: 'flex-start' | 'center' | 'flex-end';
 }
 
 export const StatusLine: React.FC<StatusLineProps> = ({
@@ -23,6 +24,7 @@ export const StatusLine: React.FC<StatusLineProps> = ({
   symbol,
   color,
   marginBottom = 0,
+  alignItems = 'flex-start',
 }) => {
   const theme = useTheme();
   const indentSize = theme.layout.indent ?? 2;
@@ -38,7 +40,7 @@ export const StatusLine: React.FC<StatusLineProps> = ({
   const labelColor = status === 'default' ? theme.colors.text : indicatorColor;
 
   return (
-    <Box flexDirection="row" alignItems="flex-start" marginBottom={marginBottom}>
+    <Box flexDirection="row" alignItems={alignItems} marginBottom={marginBottom}>
       <Box marginLeft={indentLevel * indentSize}>
         {spinner ? (
           <Spinner text="" color={indicatorColor} type="dots" />

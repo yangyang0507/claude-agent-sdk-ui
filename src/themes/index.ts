@@ -3,8 +3,6 @@
  */
 
 import type { Theme, ThemeOptions, ThemeInput, BuiltInTheme } from '../types/theme.js';
-import { darkTheme } from './dark.js';
-import { lightTheme } from './light.js';
 import { claudeCodeTheme } from './claude-code.js';
 import { droidTheme } from './droid.js';
 
@@ -12,8 +10,6 @@ import { droidTheme } from './droid.js';
  * 内置主题映射
  */
 const builtInThemes: Record<BuiltInTheme, Theme> = {
-  dark: darkTheme,
-  light: lightTheme,
   'claude-code': claudeCodeTheme,
   droid: droidTheme,
 };
@@ -25,11 +21,11 @@ const builtInThemes: Record<BuiltInTheme, Theme> = {
  */
 export function getTheme(input?: ThemeInput): Theme {
   if (!input) {
-    return darkTheme; // 默认深色主题
+    return claudeCodeTheme; // 默认 claude-code 主题
   }
 
   if (typeof input === 'string') {
-    return builtInThemes[input] || darkTheme;
+    return builtInThemes[input] || claudeCodeTheme;
   }
 
   return input;
@@ -41,7 +37,7 @@ export function getTheme(input?: ThemeInput): Theme {
  * @returns 完整的主题对象
  */
 export function createTheme(options: ThemeOptions): Theme {
-  const baseTheme = darkTheme;
+  const baseTheme = claudeCodeTheme;
 
   return {
     name: options.name,
@@ -68,11 +64,11 @@ export function createTheme(options: ThemeOptions): Theme {
  * 检查是否为内置主题
  */
 export function isBuiltInTheme(name: string): name is BuiltInTheme {
-  return name === 'dark' || name === 'light' || name === 'claude-code' || name === 'droid';
+  return name === 'claude-code' || name === 'droid';
 }
 
 // 导出内置主题
-export { darkTheme, lightTheme, claudeCodeTheme, droidTheme };
+export { claudeCodeTheme, droidTheme };
 
 // 导出主题类型
 export type { Theme, ThemeOptions, ThemeInput, BuiltInTheme };

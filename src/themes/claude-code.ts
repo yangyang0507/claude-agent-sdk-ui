@@ -31,8 +31,8 @@ export const claudeCodeTheme: Theme = {
     spinner: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
     bullet: '●',
     arrow: '→',
-    thinking: '💭',
-    tool: '🔧',
+    thinking: '∴',
+    tool: '⚙',
     aiPrefix: '⏺', // Claude Code 特有的圆点符号
     userPrefix: '>',
     toolOutput: '└', // 树状输出符号

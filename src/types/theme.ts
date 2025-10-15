@@ -117,7 +117,7 @@ export type ThemeOptions = Partial<Theme> & {
 /**
  * 内置主题名称
  */
-export type BuiltInTheme = 'dark' | 'light' | 'claude-code' | 'droid';
+export type BuiltInTheme = 'claude-code' | 'droid';
 
 /**
  * 主题或主题名称

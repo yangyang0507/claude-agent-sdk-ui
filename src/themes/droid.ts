@@ -31,7 +31,7 @@ export const droidTheme: Theme = {
     spinner: ['◐', '◓', '◑', '◒'], // 圆形旋转动画
     bullet: '●',
     arrow: '↳',
-    thinking: '💭',
+    thinking: '…',
     tool: '⚙',
     aiPrefix: '⛬', // Droid 特有的六芒星符号
     userPrefix: '>', // 用户输入使用简单的 >

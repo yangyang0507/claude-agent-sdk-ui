@@ -29,7 +29,7 @@ export interface ThemeProviderProps {
  * </ThemeProvider>
  * ```
  */
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, theme = 'dark' }) => {
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, theme = 'claude-code' }) => {
   const resolvedTheme = typeof theme === 'string' ? getTheme(theme) : theme;
 
   return <ThemeContext.Provider value={resolvedTheme}>{children}</ThemeContext.Provider>;
@@ -51,7 +51,7 @@ export const useTheme = (): Theme => {
 
   if (!theme) {
     // 如果没有 Provider，返回默认主题
-    return getTheme('dark');
+    return getTheme('claude-code');
   }
 
   return theme;

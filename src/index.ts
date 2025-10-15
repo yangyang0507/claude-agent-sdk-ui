@@ -5,6 +5,7 @@
 
 import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import type { RendererOptions } from './types/renderer.js';
+import type { ReplayOptions } from './utils/replay.js';
 import { UIRenderer } from './renderer/renderer.js';
 import { StreamingRenderer } from './renderer/streaming-renderer.js';
 
@@ -21,6 +22,7 @@ export type {
   SDKResultMessage,
 } from './types/messages.js';
 export type { LoggerOptions, LogEntry } from './utils/logger.js';
+export type { ReplayOptions } from './utils/replay.js';
 
 // ============================================
 // 主题系统
@@ -61,6 +63,7 @@ export {
   extractToolDetailLines,
 } from './utils/tools.js';
 export { SessionLogger, createLogger } from './utils/logger.js';
+export { LogReplayer, createLogReplayer, replayLog } from './utils/replay.js';
 
 // ============================================
 // API Functions
@@ -232,4 +235,10 @@ export default {
   // Classes
   Renderer: UIRenderer,
   StreamingRenderer,
+
+  // Utilities
+  replayLog: async (logFilePath: string, options?: ReplayOptions) => {
+    const { replayLog } = await import('./utils/replay.js');
+    return replayLog(logFilePath, options);
+  },
 };
