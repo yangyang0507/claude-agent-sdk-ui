@@ -118,7 +118,7 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
               color={theme.colors.dim}
               symbol={thinkingSymbol}
               marginBottom={1}
-              alignItems="center"
+              alignItems="flex-start"
               label={<Text dimColor>{item.thinking}</Text>}
             />
           );
@@ -166,7 +166,7 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
                       color={theme.colors.dim}
                       symbol={thinkingSymbol}
                       marginBottom={1}
-                      alignItems="center"
+                      alignItems="flex-start"
                       label={<Text dimColor>{parsed.content}</Text>}
                     />
                   );

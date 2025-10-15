@@ -84,7 +84,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
                       color={theme.colors.dim}
                       symbol={theme.symbols?.thinking || theme.symbols.aiPrefix || '…'}
                       marginBottom={1}
-                      alignItems="center"
+                      alignItems="flex-start"
                       label={<Text dimColor>{parsed.content}</Text>}
                     />
                   );
@@ -116,7 +116,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
               color={theme.colors.dim}
               symbol={theme.symbols?.thinking || theme.symbols.aiPrefix || '…'}
               marginBottom={1}
-              alignItems="center"
+              alignItems="flex-start"
               label={<Text dimColor>{item.thinking}</Text>}
             />
           );
