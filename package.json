@@ -25,10 +25,9 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build",
-    "demo": "node --import tsx/esm examples/integration/ui-renderer-demo.ts",
-    "demo:streaming": "node --import tsx/esm examples/streaming/full-session-streaming.tsx",
-    "test:table": "node --import tsx/esm test/formatters/table.test.ts",
-    "replay": "node --import tsx/esm bin/replay.ts"
+    "replay": "node --import tsx/esm bin/replay.ts",
+    "demo": "npx tsx --env-file=.env examples/agent-integration/hello-demo.ts",
+    "demo:streaming": "npx tsx --env-file=.env examples/agent-integration/hello-streaming-demo.ts"
   },
   "bin": {
     "claude-agent-sdk-ui-replay": "./bin/replay.ts"
@@ -44,6 +43,14 @@
   ],
   "author": "D.Yang",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yangyang0507/claude-agent-sdk-ui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yangyang0507/claude-agent-sdk-ui/issues"
+  },
+  "homepage": "https://github.com/yangyang0507/claude-agent-sdk-ui#readme",
   "dependencies": {
     "chalk": "^5.3.0",
     "cli-table3": "^0.6.5",
