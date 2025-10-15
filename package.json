@@ -1,6 +1,6 @@
 {
   "name": "claude-agent-sdk-ui",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "Beautiful CLI UI rendering for Claude Agent SDK",
   "main": "dist/index.cjs",
