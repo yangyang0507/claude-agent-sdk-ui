@@ -54,6 +54,34 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
   const theme = useTheme();
   const { content } = message.message;
   const toolOutputSymbol = theme.symbols.toolOutput || '⎿';
+  const thinkingSymbol = theme.symbols?.thinking || theme.symbols.aiPrefix || '…';
+
+  // 渲染多行 thinking 内容的辅助函数
+  const renderThinkingContent = (thinkingText: string, key: string | number) => {
+    const lines = thinkingText.split('\n').filter(line => line.trim().length > 0);
+    if (lines.length === 0) return null;
+
+    return (
+      <Box key={key} flexDirection="column" marginBottom={1}>
+        {/* 第一行：图标 + 文本 */}
+        <Box flexDirection="row">
+          <Text color={theme.colors.dim}>{thinkingSymbol}</Text>
+          <Box marginLeft={1}>
+            <Text dimColor>{lines[0]}</Text>
+          </Box>
+        </Box>
+        {/* 后续行：缩进对齐 */}
+        {lines.slice(1).map((line, lineIndex) => (
+          <Box key={lineIndex} flexDirection="row">
+            <Text>{' '.repeat(thinkingSymbol.length)}</Text>
+            <Box marginLeft={1}>
+              <Text dimColor>{line}</Text>
+            </Box>
+          </Box>
+        ))}
+      </Box>
+    );
+  };
 
   return (
     <Box flexDirection="column">
@@ -77,17 +105,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
                   if (!showThinking) {
                     return null;
                   }
-                  return (
-                    <StatusLine
-                      key={`${index}-${parsedIndex}`}
-                      status="active"
-                      color={theme.colors.dim}
-                      symbol={theme.symbols?.thinking || theme.symbols.aiPrefix || '…'}
-                      marginBottom={1}
-                      alignItems="flex-start"
-                      label={<Text dimColor>{parsed.content}</Text>}
-                    />
-                  );
+                  return renderThinkingContent(parsed.content, `${index}-${parsedIndex}`);
                 }
 
                 // 普通文本内容
@@ -109,17 +127,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
 
         // 2. 思考内容
         if (isThinkingContent(item) && showThinking) {
-          return (
-            <StatusLine
-              key={index}
-              status="active"
-              color={theme.colors.dim}
-              symbol={theme.symbols?.thinking || theme.symbols.aiPrefix || '…'}
-              marginBottom={1}
-              alignItems="flex-start"
-              label={<Text dimColor>{item.thinking}</Text>}
-            />
-          );
+          return renderThinkingContent(item.thinking, index);
         }
 
         // 3. 工具调用
