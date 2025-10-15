@@ -51,6 +51,10 @@
     "url": "https://github.com/yangyang0507/claude-agent-sdk-ui/issues"
   },
   "homepage": "https://github.com/yangyang0507/claude-agent-sdk-ui#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "dependencies": {
     "chalk": "^5.3.0",
     "cli-table3": "^0.6.5",
