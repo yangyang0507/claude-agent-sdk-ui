@@ -22,11 +22,11 @@ Beautiful, out-of-the-box CLI UI rendering for Claude Agent SDK
 
 - 🎨 **React + Ink Architecture** - Build terminal UI with declarative components
 - 🚀 **Minimal API** - Full rendering in one line of code
-- 🎭 **Theme System** - Built-in claude-code and droid themes, fully customizable
+- 🎭 **Component-Level Theme System** - Each theme controls complete layout and interaction, not just styling
 - 🎁 **Rich Component Library** - Badge, Box, Divider, Table, Spinner, Markdown, and more
 - 🌊 **Streaming Rendering** - Real-time updates with typing effect support
 - 📼 **Log Replay** - Complete session logging and replay functionality
-- 💪 **Type Safe** - Full TypeScript type definitions
+- 💪 **Type Safe** - Full TypeScript type definitions with compile-time guarantees
 - ⚡ **High Performance** - Optimized rendering engine for handling large message volumes
 
 ---
@@ -160,19 +160,38 @@ await renderer.cleanup();
 
 ## 🎭 Theme System
 
+### Component-Level Architecture
+
+**v1.0.0** introduces a revolutionary theme system where each theme has **complete control over layout and components**, not just colors and symbols.
+
+- 🏗️ Each theme contains its own complete component implementations
+- 🎨 Themes can customize message layout, interaction patterns, and visual design
+- 🔄 Dynamic component routing via proxy pattern
+- 💪 Type-safe with compile-time guarantees
+
 ### Built-in Themes
 
+#### Claude Code Theme
+Clean, professional design inspired by Claude Code:
 ```typescript
-import { claudeCodeTheme, droidTheme } from 'claude-agent-sdk-ui';
-
-// Use claude-code theme (default)
 const renderer = createRenderer({ theme: 'claude-code' });
+```
 
-// Use droid theme
+#### Droid Theme
+Modern CLI aesthetic with unique visual design:
+- 🟠 Orange for "in progress" states (thinking, streaming, tool execution)
+- 🔵 Cyan for completed content and stable UI elements
+- ⛬ Hexagram symbol (⛬) for AI messages
+- ↳ Arrow symbol (↳) for tool outputs
+- Orange background labels for tool calls
+
+```typescript
 const renderer = createRenderer({ theme: 'droid' });
 ```
 
-### Custom Theme
+### Custom Themes
+
+#### Simple Theme (Colors & Symbols Only)
 
 ```typescript
 import { createTheme } from 'claude-agent-sdk-ui';
@@ -200,6 +219,33 @@ const myTheme = createTheme({
 
 const renderer = createRenderer({ theme: myTheme });
 ```
+
+#### Advanced Theme (Custom Layout)
+
+For complete layout control, create custom component implementations:
+
+```typescript
+// themes/my-theme/config.ts
+import { AssistantMessage } from './components/assistant-message';
+import { StreamingAssistantMessage } from './components/streaming-assistant-message';
+// ... import other components
+
+export const myTheme: Theme = {
+  name: 'my-theme',
+  colors: { /* ... */ },
+  symbols: { /* ... */ },
+  components: {
+    assistantMessage: AssistantMessage,
+    streamingAssistantMessage: StreamingAssistantMessage,
+    toolResultMessage: ToolResultMessage,
+    systemMessage: SystemMessage,
+    finalResult: FinalResult,
+    appLayout: AppLayout,
+  },
+};
+```
+
+📚 **See the [Custom Layout Theme Guide](./docs/custom-layout-theme.md) for detailed instructions.**
 
 ---
 
@@ -334,7 +380,7 @@ interface RendererOptions {
   // Display options
   showTimestamps?: boolean;          // Show timestamps (default: false)
   showSessionInfo?: boolean;         // Show session info (default: true)
-  showFinalResult?: boolean;         // Show final result (default: true)
+  showFinalResult?: boolean;         // Show final result (default: false)
   showExecutionStats?: boolean;      // Show execution stats (default: false)
   showTokenUsage?: boolean;          // Show token usage (default: false)
   showThinking?: boolean;            // Show thinking process (default: false)
