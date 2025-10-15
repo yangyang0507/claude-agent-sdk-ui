@@ -141,7 +141,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
               <StatusLine
                 status={tone}
                 spinner={isPending}
-                marginBottom={details.length > 0 ? 0 : 1}
+                marginBottom={0}
                 label={
                   <Text color={isError ? theme.colors.error : theme.colors.text}>{displayText}</Text>
                 }
