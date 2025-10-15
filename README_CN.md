@@ -22,11 +22,11 @@
 
 - 🎨 **React + Ink 架构** - 使用声明式组件构建终端 UI
 - 🚀 **极简 API** - 一行代码实现完整渲染
-- 🎭 **主题系统** - 内置 claude-code 和 droid 主题，支持自定义
+- 🎭 **组件级主题系统** - 每个主题完全控制布局和交互，而不仅仅是样式
 - 🎁 **丰富组件库** - Badge、Box、Divider、Table、Spinner、Markdown 等
 - 🌊 **流式渲染** - 支持实时更新和打字机效果
 - 📼 **日志重放** - 完整的会话日志记录和重放功能
-- 💪 **类型安全** - 完整的 TypeScript 类型定义
+- 💪 **类型安全** - 完整的 TypeScript 类型定义，编译时保证
 - ⚡ **高性能** - 优化的渲染引擎，流畅处理大量消息
 
 ---
@@ -160,19 +160,38 @@ await renderer.cleanup();
 
 ## 🎭 主题系统
 
+### 组件级架构
+
+**v1.0.0** 引入了革命性的主题系统，每个主题都拥有**对布局和组件的完全控制权**，而不仅仅是颜色和符号。
+
+- 🏗️ 每个主题包含完整的组件实现
+- 🎨 主题可以自定义消息布局、交互模式和视觉设计
+- 🔄 通过代理模式实现动态组件路由
+- 💪 类型安全，编译时保证完整性
+
 ### 内置主题
 
+#### Claude Code 主题
+灵感来自 Claude Code 的简洁专业设计：
 ```typescript
-import { claudeCodeTheme, droidTheme } from 'claude-agent-sdk-ui';
-
-// 使用 claude-code 主题（默认）
 const renderer = createRenderer({ theme: 'claude-code' });
+```
 
-// 使用 droid 主题
+#### Droid 主题
+现代 CLI 美学，独特视觉设计：
+- 🟠 橙色表示"进行中"状态（思考、流式、工具执行）
+- 🔵 青色表示已完成内容和稳定 UI 元素
+- ⛬ 六芒星符号（⛬）作为 AI 消息前缀
+- ↳ 箭头符号（↳）表示工具输出
+- 橙色背景标签显示工具调用
+
+```typescript
 const renderer = createRenderer({ theme: 'droid' });
 ```
 
 ### 自定义主题
+
+#### 简单主题（仅颜色和符号）
 
 ```typescript
 import { createTheme } from 'claude-agent-sdk-ui';
@@ -200,6 +219,33 @@ const myTheme = createTheme({
 
 const renderer = createRenderer({ theme: myTheme });
 ```
+
+#### 高级主题（自定义布局）
+
+要实现完全的布局控制，可以创建自定义组件实现：
+
+```typescript
+// themes/my-theme/config.ts
+import { AssistantMessage } from './components/assistant-message';
+import { StreamingAssistantMessage } from './components/streaming-assistant-message';
+// ... 导入其他组件
+
+export const myTheme: Theme = {
+  name: 'my-theme',
+  colors: { /* ... */ },
+  symbols: { /* ... */ },
+  components: {
+    assistantMessage: AssistantMessage,
+    streamingAssistantMessage: StreamingAssistantMessage,
+    toolResultMessage: ToolResultMessage,
+    systemMessage: SystemMessage,
+    finalResult: FinalResult,
+    appLayout: AppLayout,
+  },
+};
+```
+
+📚 **详见[自定义布局主题指南](./docs/custom-layout-theme.md)获取详细说明。**
 
 ---
 
@@ -334,7 +380,7 @@ interface RendererOptions {
   // 显示选项
   showTimestamps?: boolean;          // 显示时间戳（默认：false）
   showSessionInfo?: boolean;         // 显示会话信息（默认：true）
-  showFinalResult?: boolean;         // 显示最终结果（默认：true）
+  showFinalResult?: boolean;         // 显示最终结果（默认：false）
   showExecutionStats?: boolean;      // 显示执行统计（默认：false）
   showTokenUsage?: boolean;          // 显示 Token 使用量（默认：false）
   showThinking?: boolean;            // 显示思考过程（默认：false）
