@@ -5,14 +5,15 @@
  */
 
 import React from 'react';
-import { render, Box } from 'ink';
+import { render } from 'ink';
 import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import type { RendererOptions } from '../types/renderer.js';
 import { ThemeProvider } from '../hooks/use-theme.js';
-import { SystemMessage } from '../components/message/system-message.js';
-import { StreamingAssistantMessage } from '../components/message/streaming-assistant-message.js';
-import { ToolResultMessage } from '../components/message/tool-result-message.js';
-import { FinalResult } from '../components/message/final-result.js';
+import { SystemMessageProxy } from '../components/proxy/system-message-proxy.js';
+import { StreamingAssistantMessageProxy } from '../components/proxy/streaming-assistant-message-proxy.js';
+import { ToolResultMessageProxy } from '../components/proxy/tool-result-message-proxy.js';
+import { FinalResultProxy } from '../components/proxy/final-result-proxy.js';
+import { AppLayoutProxy } from '../components/proxy/app-layout-proxy.js';
 import {
   isSystemInitMessage,
   isAssistantMessage,
@@ -68,13 +69,13 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
 
   return (
     <ThemeProvider theme={options.theme}>
-      <Box flexDirection="column">
+      <AppLayoutProxy messages={messages} isStreaming={currentStreamingIndex >= 0}>
         {messages.map((message, index) => {
           const isStreaming = index === currentStreamingIndex;
 
           // System 消息
           if (isSystemInitMessage(message)) {
-            return <SystemMessage key={index} message={message} />;
+            return <SystemMessageProxy key={index} message={message} />;
           }
 
           // Assistant 消息
@@ -82,7 +83,7 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
             // 如果是当前正在流式的消息，使用流式组件
             if (isStreaming && options.streaming) {
               return (
-                <StreamingAssistantMessage
+                <StreamingAssistantMessageProxy
                   key={index}
                   message={message}
                   showThinking={options.showThinking}
@@ -97,7 +98,7 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
 
             // 否则使用普通组件（已完成的消息）
             return (
-              <StreamingAssistantMessage
+              <StreamingAssistantMessageProxy
                 key={index}
                 message={message}
                 showThinking={options.showThinking}
@@ -111,7 +112,7 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
           // Tool Result 消息
           if (isUserMessage(message)) {
             return (
-              <ToolResultMessage
+              <ToolResultMessageProxy
                 key={index}
                 message={message}
                 maxOutputLines={options.maxOutputLines}
@@ -122,7 +123,7 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
           // 最终结果
           if (isResultMessage(message)) {
             return (
-              <FinalResult
+              <FinalResultProxy
                 key={index}
                 message={message}
                 showTokenUsage={options.showTokenUsage}
@@ -142,7 +143,7 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
             marginBottom={1}
           />
         )}
-      </Box>
+      </AppLayoutProxy>
     </ThemeProvider>
   );
 };

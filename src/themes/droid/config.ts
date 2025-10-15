@@ -4,7 +4,13 @@
  * 特点:结构化、视觉层次清晰、使用特殊几何符号
  */
 
-import type { Theme } from '../types/theme.js';
+import type { Theme } from '../../types/theme.js';
+import { AssistantMessage } from './components/assistant-message.js';
+import { StreamingAssistantMessage } from './components/streaming-assistant-message.js';
+import { ToolResultMessage } from './components/tool-result-message.js';
+import { SystemMessage } from './components/system-message.js';
+import { FinalResult } from './components/final-result.js';
+import { AppLayout } from './app-layout.js';
 
 export const droidTheme: Theme = {
   name: 'droid',
@@ -49,5 +55,14 @@ export const droidTheme: Theme = {
     lineSpacing: 1,
     componentSpacing: 2,
     maxWidth: 100,
+  },
+
+  components: {
+    assistantMessage: AssistantMessage,
+    streamingAssistantMessage: StreamingAssistantMessage,
+    toolResultMessage: ToolResultMessage,
+    systemMessage: SystemMessage,
+    finalResult: FinalResult,
+    appLayout: AppLayout,
   },
 };

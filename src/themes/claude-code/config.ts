@@ -4,7 +4,13 @@
  * 特点:极简、高信息密度、使用特殊符号
  */
 
-import type { Theme } from '../types/theme.js';
+import type { Theme } from '../../types/theme.js';
+import { AssistantMessage } from './components/assistant-message.js';
+import { StreamingAssistantMessage } from './components/streaming-assistant-message.js';
+import { ToolResultMessage } from './components/tool-result-message.js';
+import { SystemMessage } from './components/system-message.js';
+import { FinalResult } from './components/final-result.js';
+import { AppLayout } from './app-layout.js';
 
 export const claudeCodeTheme: Theme = {
   name: 'claude-code',
@@ -49,5 +55,14 @@ export const claudeCodeTheme: Theme = {
     lineSpacing: 0, // Claude Code 使用紧凑间距
     componentSpacing: 1, // 组件之间的间距也较小
     maxWidth: 120,
+  },
+
+  components: {
+    assistantMessage: AssistantMessage,
+    streamingAssistantMessage: StreamingAssistantMessage,
+    toolResultMessage: ToolResultMessage,
+    systemMessage: SystemMessage,
+    finalResult: FinalResult,
+    appLayout: AppLayout,
   },
 };

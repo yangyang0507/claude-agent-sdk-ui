@@ -5,11 +5,11 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { SDKResultMessage } from '@anthropic-ai/claude-agent-sdk';
-import { Box as CustomBox } from '../ui/box.js';
-import { isResultSuccessMessage } from '../../types/messages.js';
-import { useTheme } from '../../hooks/use-theme.js';
-import { formatDuration } from '../../utils/time.js';
-import { Markdown } from '../ui/markdown.js';
+import { Box as CustomBox } from '../../../components/ui/box.js';
+import { isResultSuccessMessage } from '../../../types/messages.js';
+import { useTheme } from '../../../hooks/use-theme.js';
+import { formatDuration } from '../../../utils/time.js';
+import { Markdown } from '../../../components/ui/markdown.js';
 
 export interface FinalResultProps {
   message: SDKResultMessage;

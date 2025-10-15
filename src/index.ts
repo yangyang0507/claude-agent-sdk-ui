@@ -36,13 +36,11 @@ export * from './components/ui/index.js';
 export * from './hooks/use-theme.js';
 
 // ============================================
-// 消息组件
+// 消息组件（现在由主题提供，不再直接导出）
 // ============================================
-export { SystemMessage } from './components/message/system-message.js';
-export { AssistantMessage } from './components/message/assistant-message.js';
-export { StreamingAssistantMessage } from './components/message/streaming-assistant-message.js';
-export { ToolResultMessage } from './components/message/tool-result-message.js';
-export { FinalResult } from './components/message/final-result.js';
+// 如果需要访问组件，请从对应的主题导入：
+// import { AssistantMessage } from 'claude-agent-sdk-ui/themes/claude-code/components/assistant-message';
+// import { AssistantMessage } from 'claude-agent-sdk-ui/themes/droid/components/assistant-message';
 
 // ============================================
 // 渲染器类

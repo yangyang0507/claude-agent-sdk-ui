@@ -5,14 +5,14 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { SDKAssistantMessage } from '@anthropic-ai/claude-agent-sdk';
-import { useTheme } from '../../hooks/use-theme.js';
-import { StreamingText } from '../ui/streaming-text.js';
-import { Markdown } from '../ui/markdown.js';
-import { StatusLine } from '../ui/status-line.js';
-import { isTextContent, isThinkingContent, isToolUseContent, type MessageContent } from '../../types/messages.js';
-import { sanitizeToolInput, summarizeToolInput, extractToolDetailLines } from '../../utils/tools.js';
-import type { ToolExecutionStateMap } from '../../utils/tool-states.js';
-import { parseThinkingTags } from '../../utils/string.js';
+import { useTheme } from '../../../hooks/use-theme.js';
+import { StreamingText } from '../../../components/ui/streaming-text.js';
+import { Markdown } from '../../../components/ui/markdown.js';
+import { StatusLine } from '../../../components/ui/status-line.js';
+import { isTextContent, isThinkingContent, isToolUseContent, type MessageContent } from '../../../types/messages.js';
+import { sanitizeToolInput, summarizeToolInput, extractToolDetailLines } from '../../../utils/tools.js';
+import type { ToolExecutionStateMap } from '../../../utils/tool-states.js';
+import { parseThinkingTags } from '../../../utils/string.js';
 
 export interface StreamingAssistantMessageProps {
   /**

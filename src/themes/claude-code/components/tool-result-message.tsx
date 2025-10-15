@@ -5,11 +5,11 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { SDKUserMessage } from '@anthropic-ai/claude-agent-sdk';
-import { isToolResultContent, type MessageContent } from '../../types/messages.js';
-import { useTheme } from '../../hooks/use-theme.js';
-import { truncateOutput } from '../../utils/string.js';
-import { StatusLine } from '../ui/status-line.js';
-import type { StatusTone } from '../ui/status-line.js';
+import { isToolResultContent, type MessageContent } from '../../../types/messages.js';
+import { useTheme } from '../../../hooks/use-theme.js';
+import { truncateOutput } from '../../../utils/string.js';
+import { StatusLine } from '../../../components/ui/status-line.js';
+import type { StatusTone } from '../../../components/ui/status-line.js';
 
 export interface ToolResultMessageProps {
   message: SDKUserMessage;
