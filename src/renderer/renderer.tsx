@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { render, Box } from 'ink';
+import { render } from 'ink';
 import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import type { RendererOptions } from '../types/renderer.js';
 import { ThemeProvider } from '../hooks/use-theme.js';
@@ -14,6 +14,7 @@ import { deriveToolExecutionState } from '../utils/tool-states.js';
 import { StatusLine } from '../components/ui/status-line.js';
 import { isAssistantMessage, isSystemInitMessage, isStreamEventMessage } from '../types/messages.js';
 import { SessionLogger } from '../utils/logger.js';
+import { AppLayoutProxy } from '../components/proxy/app-layout-proxy.js';
 
 interface UIRendererAppProps {
   messages: SDKMessage[];
@@ -32,7 +33,7 @@ const UIRendererApp: React.FC<UIRendererAppProps> = ({ messages, options, isStre
 
   return (
     <ThemeProvider theme={options.theme}>
-      <Box flexDirection="column">
+      <AppLayoutProxy messages={messages} isStreaming={isStreaming}>
         {messages.map((message, index) => (
           <MessageRouter
             key={index}
@@ -41,7 +42,7 @@ const UIRendererApp: React.FC<UIRendererAppProps> = ({ messages, options, isStre
             toolStates={toolStates}
           />
         ))}
-        
+
         {/* 显示等待状态 */}
         {waitingState.show && (
           <StatusLine
@@ -51,7 +52,7 @@ const UIRendererApp: React.FC<UIRendererAppProps> = ({ messages, options, isStre
             marginBottom={1}
           />
         )}
-      </Box>
+      </AppLayoutProxy>
     </ThemeProvider>
   );
 };

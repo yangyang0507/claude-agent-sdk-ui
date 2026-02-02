@@ -33,7 +33,7 @@ export interface RendererOptions {
   /** 是否显示会话信息（Session Info）（默认: true） */
   showSessionInfo?: boolean;
 
-  /** 是否显示最终结果（Final Result）（默认: true） */
+  /** 是否显示最终结果（Final Result）（默认: false） */
   showFinalResult?: boolean;
 
   /** 是否显示执行统计（Execution Stats）（默认: false） */

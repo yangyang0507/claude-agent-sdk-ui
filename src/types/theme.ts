@@ -2,6 +2,10 @@
  * 主题系统类型定义
  */
 
+import type React from 'react';
+import type { SDKAssistantMessage, SDKMessage, SDKResultMessage, SDKSystemMessage, SDKUserMessage } from '@anthropic-ai/claude-agent-sdk';
+import type { ToolExecutionStateMap } from '../utils/tool-states.js';
+
 /**
  * 颜色配置
  */
@@ -92,6 +96,76 @@ export interface ThemeLayout {
 }
 
 /**
+ * Assistant 消息组件属性
+ */
+export interface AssistantMessageProps {
+  message: SDKAssistantMessage;
+  showThinking?: boolean;
+  showToolDetails?: boolean;
+  showToolContent?: boolean;
+  toolStates?: ToolExecutionStateMap;
+}
+
+/**
+ * Streaming Assistant 消息组件属性
+ */
+export interface StreamingAssistantMessageProps extends AssistantMessageProps {
+  typingSpeed?: number;
+  streamingEnabled?: boolean;
+  onStreamComplete?: () => void;
+}
+
+/**
+ * Tool Result 消息组件属性
+ */
+export interface ToolResultMessageProps {
+  message: SDKUserMessage;
+  maxOutputLines?: number;
+}
+
+/**
+ * System 消息组件属性
+ */
+export interface SystemMessageProps {
+  message: SDKSystemMessage;
+}
+
+/**
+ * Final Result 组件属性
+ */
+export interface FinalResultProps {
+  message: SDKResultMessage;
+  showTokenUsage?: boolean;
+}
+
+/**
+ * 应用布局组件属性
+ */
+export interface AppLayoutProps {
+  children: React.ReactNode;
+  messages: SDKMessage[];
+  isStreaming?: boolean;
+}
+
+/**
+ * 主题组件配置 - 每个主题必须提供完整的组件实现
+ */
+export interface ThemeComponents {
+  /** Assistant 消息组件 */
+  assistantMessage: React.ComponentType<AssistantMessageProps>;
+  /** 流式 Assistant 消息组件 */
+  streamingAssistantMessage: React.ComponentType<StreamingAssistantMessageProps>;
+  /** Tool Result 消息组件 */
+  toolResultMessage: React.ComponentType<ToolResultMessageProps>;
+  /** System 消息组件 */
+  systemMessage: React.ComponentType<SystemMessageProps>;
+  /** 最终结果组件 */
+  finalResult: React.ComponentType<FinalResultProps>;
+  /** 应用布局组件 - 可选 */
+  appLayout?: React.ComponentType<AppLayoutProps>;
+}
+
+/**
  * 主题配置
  */
 export interface Theme {
@@ -105,6 +179,8 @@ export interface Theme {
   borders: ThemeBorders;
   /** 布局配置 */
   layout: ThemeLayout;
+  /** 组件配置 - 每个主题必须提供完整的组件实现 */
+  components: ThemeComponents;
 }
 
 /**

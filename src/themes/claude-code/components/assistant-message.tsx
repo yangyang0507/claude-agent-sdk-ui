@@ -5,22 +5,22 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { SDKAssistantMessage } from '@anthropic-ai/claude-agent-sdk';
-import { Markdown } from '../ui/markdown.js';
+import { Markdown } from '../../../components/ui/markdown.js';
 import {
   isTextContent,
   isThinkingContent,
   isToolUseContent,
   type MessageContent,
-} from '../../types/messages.js';
-import { useTheme } from '../../hooks/use-theme.js';
+} from '../../../types/messages.js';
+import { useTheme } from '../../../hooks/use-theme.js';
 import {
   sanitizeToolInput,
   summarizeToolInput,
   extractToolDetailLines,
-} from '../../utils/tools.js';
-import { StatusLine } from '../ui/status-line.js';
-import type { ToolExecutionStateMap } from '../../utils/tool-states.js';
-import { parseThinkingTags } from '../../utils/string.js';
+} from '../../../utils/tools.js';
+import { StatusLine } from '../../../components/ui/status-line.js';
+import type { ToolExecutionStateMap } from '../../../utils/tool-states.js';
+import { parseThinkingTags } from '../../../utils/string.js';
 
 export interface AssistantMessageProps {
   message: SDKAssistantMessage;

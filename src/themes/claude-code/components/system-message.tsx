@@ -5,8 +5,8 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { SDKSystemMessage } from '@anthropic-ai/claude-agent-sdk';
-import { Box as CustomBox } from '../ui/box.js';
-import { useTheme } from '../../hooks/use-theme.js';
+import { Box as CustomBox } from '../../../components/ui/box.js';
+import { useTheme } from '../../../hooks/use-theme.js';
 
 export interface SystemMessageProps {
   message: SDKSystemMessage;

@@ -3,8 +3,8 @@
  */
 
 import type { Theme, ThemeOptions, ThemeInput, BuiltInTheme } from '../types/theme.js';
-import { claudeCodeTheme } from './claude-code.js';
-import { droidTheme } from './droid.js';
+import { claudeCodeTheme } from './claude-code/config.js';
+import { droidTheme } from './droid/config.js';
 
 /**
  * 内置主题映射
@@ -35,8 +35,10 @@ export function getTheme(input?: ThemeInput): Theme {
  * 创建自定义主题
  * @param options - 主题选项(部分配置会从默认主题继承)
  * @returns 完整的主题对象
+ * 
+ * 注意：必须提供 components 字段，可以复用现有主题的组件
  */
-export function createTheme(options: ThemeOptions): Theme {
+export function createTheme(options: ThemeOptions & { components: Theme['components'] }): Theme {
   const baseTheme = claudeCodeTheme;
 
   return {
@@ -57,6 +59,7 @@ export function createTheme(options: ThemeOptions): Theme {
       ...baseTheme.layout,
       ...options.layout,
     },
+    components: options.components,
   };
 }
 

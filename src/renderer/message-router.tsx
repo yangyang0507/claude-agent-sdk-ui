@@ -4,10 +4,10 @@
 
 import React from 'react';
 import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
-import { SystemMessage } from '../components/message/system-message.js';
-import { AssistantMessage } from '../components/message/assistant-message.js';
-import { ToolResultMessage } from '../components/message/tool-result-message.js';
-import { FinalResult } from '../components/message/final-result.js';
+import { SystemMessageProxy } from '../components/proxy/system-message-proxy.js';
+import { AssistantMessageProxy } from '../components/proxy/assistant-message-proxy.js';
+import { ToolResultMessageProxy } from '../components/proxy/tool-result-message-proxy.js';
+import { FinalResultProxy } from '../components/proxy/final-result-proxy.js';
 import type { RendererOptions } from '../types/renderer.js';
 import type { ToolExecutionStateMap } from '../utils/tool-states.js';
 import {
@@ -40,13 +40,13 @@ export const MessageRouter: React.FC<MessageRouterProps> = ({
 }) => {
   // System 初始化消息
   if (isSystemInitMessage(message)) {
-    return <SystemMessage message={message} showSessionInfo={options.showSessionInfo} />;
+    return <SystemMessageProxy message={message} />;
   }
 
   // Assistant 消息
   if (isAssistantMessage(message)) {
     return (
-      <AssistantMessage
+      <AssistantMessageProxy
         message={message}
         showThinking={options.showThinking}
         showToolDetails={options.showToolDetails}
@@ -58,16 +58,14 @@ export const MessageRouter: React.FC<MessageRouterProps> = ({
 
   // User 消息（工具结果）
   if (isUserMessage(message)) {
-    return <ToolResultMessage message={message} maxOutputLines={options.maxOutputLines} />;
+    return <ToolResultMessageProxy message={message} maxOutputLines={options.maxOutputLines} />;
   }
 
   // 最终结果消息
   if (isResultMessage(message)) {
     return (
-      <FinalResult
+      <FinalResultProxy
         message={message}
-        showFinalResult={options.showFinalResult}
-        showExecutionStats={options.showExecutionStats}
         showTokenUsage={options.showTokenUsage}
       />
     );
