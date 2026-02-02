@@ -6,24 +6,24 @@ import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import type { RendererOptions } from '../../src/types/renderer.js';
 import { DEFAULT_RENDERER_OPTIONS } from '../../src/renderer/options.js';
 
-vi.mock('../../src/components/message/system-message.js', () => ({
-  SystemMessage: ({ message }: any) => <>{`SystemMessage:${message.session_id}`}</>,
+vi.mock('../../src/components/proxy/system-message-proxy.js', () => ({
+  SystemMessageProxy: ({ message }: any) => <>{`SystemMessage:${message.session_id}`}</>,
 }));
 
-vi.mock('../../src/components/message/assistant-message.js', () => ({
-  AssistantMessage: ({ message }: any) => (
+vi.mock('../../src/components/proxy/assistant-message-proxy.js', () => ({
+  AssistantMessageProxy: ({ message }: any) => (
     <>{`AssistantMessage:${message.message.content.length}`}</>
   ),
 }));
 
-vi.mock('../../src/components/message/tool-result-message.js', () => ({
-  ToolResultMessage: ({ message }: any) => (
+vi.mock('../../src/components/proxy/tool-result-message-proxy.js', () => ({
+  ToolResultMessageProxy: ({ message }: any) => (
     <>{`ToolResultMessage:${message.message.content.length}`}</>
   ),
 }));
 
-vi.mock('../../src/components/message/final-result.js', () => ({
-  FinalResult: ({ message }: any) => <>{`FinalResult:${message.type}`}</>,
+vi.mock('../../src/components/proxy/final-result-proxy.js', () => ({
+  FinalResultProxy: ({ message }: any) => <>{`FinalResult:${message.type}`}</>,
 }));
 
 const createOptions = (overrides?: Partial<RendererOptions>): Required<RendererOptions> =>
