@@ -3,6 +3,7 @@
  */
 
 import * as fs from 'node:fs';
+import { mkdir, access } from 'node:fs/promises';
 import * as path from 'node:path';
 import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 
@@ -24,6 +25,20 @@ export interface LoggerOptions {
 }
 
 /**
+ * 内部日志标记消息（用于会话开始/结束）
+ */
+interface InternalLogMessage {
+  type: 'internal';
+  subtype: 'session_start' | 'session_end';
+  content: string;
+}
+
+/**
+ * 日志消息类型（SDK 消息或内部标记）
+ */
+type LogMessage = SDKMessage | InternalLogMessage;
+
+/**
  * 日志条目
  */
 export interface LogEntry {
@@ -37,7 +52,7 @@ export interface LogEntry {
   messageType: string;
 
   /** 原始消息内容 */
-  message: SDKMessage;
+  message: LogMessage;
 
   /** 额外的元数据 */
   metadata?: Record<string, unknown>;
@@ -93,11 +108,13 @@ export class SessionLogger {
   }
 
   /**
-   * 确保日志目录存在
+   * 确保日志目录存在（异步版本）
    */
-  private ensureLogDirectory(): void {
-    if (!fs.existsSync(this.options.logPath)) {
-      fs.mkdirSync(this.options.logPath, { recursive: true });
+  private async ensureLogDirectory(): Promise<void> {
+    try {
+      await access(this.options.logPath);
+    } catch {
+      await mkdir(this.options.logPath, { recursive: true });
       if (this.options.verbose) {
         console.log(`[Logger] Created log directory: ${this.options.logPath}`);
       }
@@ -114,7 +131,7 @@ export class SessionLogger {
     this.messageCount = 0;
 
     // 确保日志目录存在
-    this.ensureLogDirectory();
+    await this.ensureLogDirectory();
 
     // 生成日志文件路径
     const fileName = this.generateFileName(sessionId);
@@ -135,7 +152,11 @@ export class SessionLogger {
       timestamp: new Date().toISOString(),
       sessionId,
       messageType: 'session_start',
-      message: { type: 'system', message: { content: `Session ${sessionId} started` } } as any,
+      message: {
+        type: 'internal',
+        subtype: 'session_start',
+        content: `Session ${sessionId} started`,
+      },
       metadata: {
         startTime: Date.now(),
       },
@@ -213,7 +234,11 @@ export class SessionLogger {
         timestamp: new Date().toISOString(),
         sessionId: this.currentSessionId,
         messageType: 'session_end',
-        message: { type: 'system', message: { content: `Session ${this.currentSessionId} ended` } } as any,
+        message: {
+          type: 'internal',
+          subtype: 'session_end',
+          content: `Session ${this.currentSessionId} ended`,
+        },
         metadata: {
           endTime: Date.now(),
           totalMessages: this.messageCount,
