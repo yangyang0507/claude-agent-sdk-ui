@@ -9,6 +9,7 @@ import { render, Box } from 'ink';
 import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import type { RendererOptions } from '../types/renderer.js';
 import { ThemeProvider } from '../hooks/use-theme.js';
+import { useWaitingState } from '../hooks/use-waiting-state.js';
 import { SystemMessage } from '../components/message/system-message.js';
 import { StreamingAssistantMessage } from '../components/message/streaming-assistant-message.js';
 import { ToolResultMessage } from '../components/message/tool-result-message.js';
@@ -19,6 +20,7 @@ import {
   isUserMessage,
   isResultMessage,
 } from '../types/messages.js';
+import { normalizeOptions, STREAMING_RENDERER_DEFAULTS } from './options.js';
 import { deriveToolExecutionState } from '../utils/tool-states.js';
 import { StatusLine } from '../components/ui/status-line.js';
 
@@ -40,31 +42,12 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
 }) => {
   const toolStates = React.useMemo(() => deriveToolExecutionState(messages), [messages]);
 
-  // 判断是否需要显示"等待中"状态和等待消息
-  const waitingState = React.useMemo<{ show: boolean; message: string }>(() => {
-    if (messages.length === 0) return { show: false, message: '' };
-    
-    const lastMessage = messages[messages.length - 1];
-    
-    // 如果最后一条消息是 result，不显示等待
-    if (isResultMessage(lastMessage)) return { show: false, message: '' };
-    
-    // 如果最后一条消息是 user 消息（工具结果），显示"思考中"
-    if (isUserMessage(lastMessage)) return { show: true, message: 'Thinking...' };
-    
-    // 如果最后一条消息是 assistant 消息，检查是否正在流式输出
-    if (isAssistantMessage(lastMessage)) {
-      const isStreaming = currentStreamingIndex === messages.length - 1;
-      // 如果正在流式输出，显示"流式输出中"
-      if (isStreaming && options.streaming && options.typingEffect) {
-        return { show: true, message: 'Streaming...' };
-      }
-      // 否则不显示等待
-      return { show: false, message: '' };
-    }
-    
-    return { show: false, message: '' };
-  }, [messages, currentStreamingIndex, options.streaming, options.typingEffect]);
+  // 使用共享的 useWaitingState hook
+  const waitingState = useWaitingState(messages, {
+    currentStreamingIndex,
+    streamingEnabled: options.streaming,
+    typingEffect: options.typingEffect,
+  });
 
   return (
     <ThemeProvider theme={options.theme}>
@@ -177,32 +160,8 @@ export class StreamingRenderer {
   private streamCompleteResolve: (() => void) | null = null;
 
   constructor(options: RendererOptions = {}) {
-    this.options = this.normalizeOptions(options);
-  }
-
-  /**
-   * 标准化配置选项
-   */
-  private normalizeOptions(options: RendererOptions): Required<RendererOptions> {
-    return {
-      theme: options.theme ?? 'claude-code',
-      showTimestamps: options.showTimestamps ?? false,
-      showSessionInfo: options.showSessionInfo ?? true,
-      showFinalResult: options.showFinalResult ?? true,
-      showExecutionStats: options.showExecutionStats ?? false,
-      showTokenUsage: options.showTokenUsage ?? false,
-      compact: options.compact ?? false,
-      maxOutputLines: options.maxOutputLines ?? 100,
-      codeHighlight: options.codeHighlight ?? true,
-      streaming: options.streaming ?? true,
-      typingEffect: options.typingEffect ?? true,
-      typingSpeed: options.typingSpeed ?? 20,
-      showThinking: options.showThinking ?? false,
-      showToolDetails: options.showToolDetails ?? true,
-      showToolContent: options.showToolContent ?? false,
-      maxWidth: options.maxWidth ?? 120,
-      logging: options.logging ?? { enabled: false },
-    };
+    // 使用流式渲染器的默认配置
+    this.options = normalizeOptions(options, STREAMING_RENDERER_DEFAULTS);
   }
 
   /**
@@ -285,7 +244,7 @@ export class StreamingRenderer {
   /**
    * 清理资源
    */
-  cleanup(): void {
+  async cleanup(): Promise<void> {
     if (this.app) {
       this.app.unmount();
       this.app = null;
@@ -299,8 +258,8 @@ export class StreamingRenderer {
   /**
    * 重置渲染器状态
    */
-  reset(): void {
-    this.cleanup();
+  async reset(): Promise<void> {
+    await this.cleanup();
   }
 }
 

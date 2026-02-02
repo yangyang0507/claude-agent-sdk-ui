@@ -7,10 +7,12 @@ import { render, Box } from 'ink';
 import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import type { RendererOptions } from '../types/renderer.js';
 import { ThemeProvider } from '../hooks/use-theme.js';
+import { useWaitingState } from '../hooks/use-waiting-state.js';
 import { MessageRouter } from './message-router.js';
+import { normalizeOptions } from './options.js';
 import { deriveToolExecutionState } from '../utils/tool-states.js';
 import { StatusLine } from '../components/ui/status-line.js';
-import { isAssistantMessage, isUserMessage, isResultMessage, isSystemInitMessage } from '../types/messages.js';
+import { isAssistantMessage, isSystemInitMessage, isStreamEventMessage } from '../types/messages.js';
 import { SessionLogger } from '../utils/logger.js';
 
 interface UIRendererAppProps {
@@ -25,29 +27,8 @@ interface UIRendererAppProps {
 const UIRendererApp: React.FC<UIRendererAppProps> = ({ messages, options, isStreaming }) => {
   const toolStates = React.useMemo(() => deriveToolExecutionState(messages), [messages]);
 
-  // 判断是否需要显示"等待中"状态和等待消息
-  const waitingState = React.useMemo<{ show: boolean; message: string }>(() => {
-    if (messages.length === 0) return { show: false, message: '' };
-
-    const lastMessage = messages[messages.length - 1];
-
-    // 如果最后一条消息是 result，不显示等待
-    if (isResultMessage(lastMessage)) return { show: false, message: '' };
-
-    // 如果正在流式传输，显示"流式输出中"
-    if (isStreaming) return { show: true, message: 'Streaming...' };
-
-    // 如果最后一条消息是 user 消息（工具结果），显示"思考中"
-    if (isUserMessage(lastMessage)) return { show: true, message: 'Thinking...' };
-
-    // 如果最后一条消息是 assistant 消息，不显示等待
-    // （要么有工具调用正在执行，要么是纯文本回复已完成）
-    if (isAssistantMessage(lastMessage)) {
-      return { show: false, message: '' };
-    }
-
-    return { show: false, message: '' };
-  }, [messages, isStreaming]);
+  // 使用共享的 useWaitingState hook
+  const waitingState = useWaitingState(messages, { isStreaming });
 
   return (
     <ThemeProvider theme={options.theme}>
@@ -96,7 +77,7 @@ export class UIRenderer {
   private isStreaming: boolean = false;
 
   constructor(options: RendererOptions = {}) {
-    this.options = this.normalizeOptions(options);
+    this.options = normalizeOptions(options);
 
     // 初始化日志记录器
     if (this.options.logging && this.options.logging.enabled) {
@@ -105,47 +86,19 @@ export class UIRenderer {
   }
 
   /**
-   * 标准化配置选项
-   */
-  private normalizeOptions(options: RendererOptions): Required<RendererOptions> {
-    return {
-      theme: options.theme ?? 'claude-code',
-      showTimestamps: options.showTimestamps ?? false,
-      showSessionInfo: options.showSessionInfo ?? true,
-      showFinalResult: options.showFinalResult ?? true,
-      showExecutionStats: options.showExecutionStats ?? false,
-      showTokenUsage: options.showTokenUsage ?? false,
-      compact: options.compact ?? false,
-      maxOutputLines: options.maxOutputLines ?? 100,
-      codeHighlight: options.codeHighlight ?? true,
-      streaming: options.streaming ?? false,
-      typingEffect: options.typingEffect ?? false,
-      typingSpeed: options.typingSpeed ?? 20,
-      showThinking: options.showThinking ?? false,
-      showToolDetails: options.showToolDetails ?? true,
-      showToolContent: options.showToolContent ?? false,
-      maxWidth: options.maxWidth ?? 120,
-      logging: options.logging ?? { enabled: false },
-    };
-  }
-
-  /**
    * 渲染单条消息
    */
   async render(message: SDKMessage): Promise<void> {
-    // 检查是否是 stream_event
-    const isStreamEvent = message.type === 'stream_event';
-
     // 如果是 stream_event，更新流式状态但不添加到消息列表
-    if (isStreamEvent) {
-      const event = (message as any).event;
+    if (isStreamEventMessage(message)) {
+      const eventType = message.event?.type;
 
       // message_start: 开始流式传输
-      if (event?.type === 'message_start') {
+      if (eventType === 'message_start') {
         this.isStreaming = true;
       }
       // message_stop: 结束流式传输
-      else if (event?.type === 'message_stop' || event?.type === 'message_delta') {
+      else if (eventType === 'message_stop' || eventType === 'message_delta') {
         this.isStreaming = false;
       }
 
