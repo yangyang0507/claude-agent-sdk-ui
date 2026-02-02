@@ -24,6 +24,25 @@ export type {
 };
 
 /**
+ * Stream Event 消息类型
+ * 用于流式传输状态的跟踪
+ */
+export interface StreamEventMessage {
+  type: 'stream_event';
+  event: {
+    type: 'message_start' | 'message_stop' | 'message_delta' | 'content_block_start' | 'content_block_delta' | 'content_block_stop';
+    [key: string]: unknown;
+  };
+}
+
+/**
+ * 类型守卫 - Stream Event 消息
+ */
+export function isStreamEventMessage(message: SDKMessage): message is SDKMessage & StreamEventMessage {
+  return message.type === 'stream_event';
+}
+
+/**
  * 消息内容类型 (from @anthropic-ai/sdk)
  * 这些类型由 SDK 定义,这里只是为了方便类型守卫
  */
