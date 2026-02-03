@@ -69,6 +69,9 @@ export interface RendererOptions {
   /** 是否显示工具参数中的 content 字段 */
   showToolContent?: boolean;
 
+  /** 是否启用命令模式快捷键 */
+  enableHotkeys?: boolean;
+
   /** 终端最大宽度 */
   maxWidth?: number;
 

@@ -6,10 +6,11 @@
 
 import React from 'react';
 import { render } from 'ink';
-import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
+import type { SDKAssistantMessage, SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import type { RendererOptions } from '../types/renderer.js';
 import { ThemeProvider } from '../hooks/use-theme.js';
 import { useWaitingState } from '../hooks/use-waiting-state.js';
+import { useCommandMode } from '../hooks/use-command-mode.js';
 import { SystemMessageProxy } from '../components/proxy/system-message-proxy.js';
 import { StreamingAssistantMessageProxy } from '../components/proxy/streaming-assistant-message-proxy.js';
 import { ToolResultMessageProxy } from '../components/proxy/tool-result-message-proxy.js';
@@ -20,16 +21,23 @@ import {
   isAssistantMessage,
   isUserMessage,
   isResultMessage,
+  isStreamEventMessage,
 } from '../types/messages.js';
 import { normalizeOptions, STREAMING_RENDERER_DEFAULTS } from './options.js';
 import { deriveToolExecutionState } from '../utils/tool-states.js';
 import { StatusLine } from '../components/ui/status-line.js';
+import { CommandOverlay } from '../components/ui/command-overlay.js';
+import { TimestampLine } from '../components/ui/timestamp-line.js';
+import { formatTimestamp } from '../utils/time.js';
+import { StreamAssembler } from './stream-assembler.js';
 
 interface StreamingRendererAppProps {
   messages: SDKMessage[];
   options: Required<RendererOptions>;
   currentStreamingIndex: number;
   onStreamComplete: () => void;
+  partialMessage?: SDKAssistantMessage | null;
+  streamingFromEvents?: boolean;
 }
 
 /**
@@ -40,77 +48,112 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
   options,
   currentStreamingIndex,
   onStreamComplete,
+  partialMessage,
+  streamingFromEvents = false,
 }) => {
-  const toolStates = React.useMemo(() => deriveToolExecutionState(messages), [messages]);
+  const commandState = useCommandMode(options);
+  const effectiveOptions = commandState.options;
+  const displayMessages = React.useMemo(
+    () => (partialMessage ? [...messages, partialMessage] : messages),
+    [messages, partialMessage]
+  );
+  const toolStates = React.useMemo(
+    () => deriveToolExecutionState(displayMessages),
+    [displayMessages]
+  );
 
-  // 使用共享的 useWaitingState hook
-  const waitingState = useWaitingState(messages, {
+  const waitingState = useWaitingState(displayMessages, {
+    isStreaming: streamingFromEvents,
     currentStreamingIndex,
-    streamingEnabled: options.streaming,
-    typingEffect: options.typingEffect,
+    streamingEnabled: effectiveOptions.streaming,
+    typingEffect: effectiveOptions.typingEffect,
   });
 
   return (
-    <ThemeProvider theme={options.theme}>
-      <AppLayoutProxy messages={messages} isStreaming={currentStreamingIndex >= 0}>
-        {messages.map((message, index) => {
+    <ThemeProvider theme={effectiveOptions.theme}>
+      <AppLayoutProxy messages={displayMessages} isStreaming={currentStreamingIndex >= 0 || streamingFromEvents}>
+        {displayMessages.map((message, index) => {
           const isStreaming = index === currentStreamingIndex;
+
+          const timestampLabel = effectiveOptions.showTimestamps
+            ? formatMessageTimestamp(message)
+            : null;
 
           // System 消息
           if (isSystemInitMessage(message)) {
-            return <SystemMessageProxy key={index} message={message} />;
+            return (
+              <React.Fragment key={index}>
+                {timestampLabel && <TimestampLine timestamp={timestampLabel} marginBottom={0} />}
+                <SystemMessageProxy message={message} showSessionInfo={effectiveOptions.showSessionInfo} />
+              </React.Fragment>
+            );
           }
 
           // Assistant 消息
           if (isAssistantMessage(message)) {
             // 如果是当前正在流式的消息，使用流式组件
-            if (isStreaming && options.streaming) {
+            if (isStreaming && effectiveOptions.streaming) {
               return (
-                <StreamingAssistantMessageProxy
-                  key={index}
-                  message={message}
-                  showThinking={options.showThinking}
-                  showToolDetails={options.showToolDetails}
-                  typingSpeed={options.typingSpeed}
-                  streamingEnabled={options.typingEffect}
-                  onStreamComplete={onStreamComplete}
-                  toolStates={toolStates}
-                />
+                <React.Fragment key={index}>
+                  {timestampLabel && <TimestampLine timestamp={timestampLabel} marginBottom={0} />}
+                  <StreamingAssistantMessageProxy
+                    message={message}
+                    showThinking={effectiveOptions.showThinking}
+                    showToolDetails={effectiveOptions.showToolDetails}
+                    showToolContent={effectiveOptions.showToolContent}
+                    codeHighlight={effectiveOptions.codeHighlight}
+                    typingSpeed={effectiveOptions.typingSpeed}
+                    streamingEnabled={effectiveOptions.typingEffect}
+                    onStreamComplete={onStreamComplete}
+                    toolStates={toolStates}
+                  />
+                </React.Fragment>
               );
             }
 
-            // 否则使用普通组件（已完成的消息）
             return (
-              <StreamingAssistantMessageProxy
-                key={index}
-                message={message}
-                showThinking={options.showThinking}
-                showToolDetails={options.showToolDetails}
-                streamingEnabled={false}
-                toolStates={toolStates}
-              />
+              <React.Fragment key={index}>
+                {timestampLabel && <TimestampLine timestamp={timestampLabel} marginBottom={0} />}
+                <StreamingAssistantMessageProxy
+                  message={message}
+                  showThinking={effectiveOptions.showThinking}
+                  showToolDetails={effectiveOptions.showToolDetails}
+                  showToolContent={effectiveOptions.showToolContent}
+                  codeHighlight={effectiveOptions.codeHighlight}
+                  streamingEnabled={false}
+                  toolStates={toolStates}
+                />
+              </React.Fragment>
             );
           }
 
           // Tool Result 消息
           if (isUserMessage(message)) {
             return (
-              <ToolResultMessageProxy
-                key={index}
-                message={message}
-                maxOutputLines={options.maxOutputLines}
-              />
+              <React.Fragment key={index}>
+                {timestampLabel && <TimestampLine timestamp={timestampLabel} marginBottom={0} />}
+                <ToolResultMessageProxy
+                  message={message}
+                  maxOutputLines={effectiveOptions.maxOutputLines}
+                  previewLines={commandState.toolOutputPreviewLines}
+                />
+              </React.Fragment>
             );
           }
 
           // 最终结果
           if (isResultMessage(message)) {
             return (
-              <FinalResultProxy
-                key={index}
-                message={message}
-                showTokenUsage={options.showTokenUsage}
-              />
+              <React.Fragment key={index}>
+                {timestampLabel && <TimestampLine timestamp={timestampLabel} marginBottom={0} />}
+                <FinalResultProxy
+                  message={message}
+                  showFinalResult={effectiveOptions.showFinalResult}
+                  showExecutionStats={effectiveOptions.showExecutionStats}
+                  showTokenUsage={effectiveOptions.showTokenUsage}
+                  codeHighlight={effectiveOptions.codeHighlight}
+                />
+              </React.Fragment>
             );
           }
 
@@ -126,10 +169,28 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
             marginBottom={1}
           />
         )}
+
+        <CommandOverlay
+          commandMode={commandState.commandMode}
+          showHelp={commandState.showHelp}
+          feedback={commandState.feedback}
+        />
       </AppLayoutProxy>
     </ThemeProvider>
   );
 };
+
+function formatMessageTimestamp(message: SDKMessage): string | null {
+  const rawTimestamp = (message as { timestamp?: string | number | Date }).timestamp;
+  if (!rawTimestamp) {
+    return null;
+  }
+  const date = rawTimestamp instanceof Date ? rawTimestamp : new Date(rawTimestamp);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return formatTimestamp(date);
+}
 
 /**
  * 流式渲染器类
@@ -159,6 +220,10 @@ export class StreamingRenderer {
   private currentStreamingIndex: number = -1;
   private streamCompletePromise: Promise<void> | null = null;
   private streamCompleteResolve: (() => void) | null = null;
+  private streamAssembler = new StreamAssembler();
+  private partialMessage: SDKAssistantMessage | null = null;
+  private streamingFromEvents: boolean = false;
+  private usedStreamEventsForCurrentMessage: boolean = false;
 
   constructor(options: RendererOptions = {}) {
     // 使用流式渲染器的默认配置
@@ -188,6 +253,61 @@ export class StreamingRenderer {
    * 渲染单条消息
    */
   async render(message: SDKMessage): Promise<void> {
+    if (isStreamEventMessage(message)) {
+      const eventType = message.event?.type;
+
+      if (eventType === 'message_start') {
+        this.streamingFromEvents = true;
+        this.usedStreamEventsForCurrentMessage = true;
+      } else if (eventType === 'message_stop') {
+        this.streamingFromEvents = false;
+      }
+
+      const partial = this.streamAssembler.handleEvent(message);
+      if (partial) {
+        this.partialMessage = partial;
+      }
+
+      this.currentStreamingIndex = -1;
+      this.streamCompletePromise = null;
+
+      const messagesCopy = [...this.messages];
+
+      if (!this.app) {
+        this.app = render(
+          <StreamingRendererApp
+            messages={messagesCopy}
+            options={this.options}
+            currentStreamingIndex={this.currentStreamingIndex}
+            onStreamComplete={this.handleStreamComplete}
+            partialMessage={this.partialMessage}
+            streamingFromEvents={this.streamingFromEvents}
+          />
+        );
+      } else {
+        this.app.rerender(
+          <StreamingRendererApp
+            messages={messagesCopy}
+            options={this.options}
+            currentStreamingIndex={this.currentStreamingIndex}
+            onStreamComplete={this.handleStreamComplete}
+            partialMessage={this.partialMessage}
+            streamingFromEvents={this.streamingFromEvents}
+          />
+        );
+      }
+
+      return;
+    }
+
+    const hadStreamEvents = this.usedStreamEventsForCurrentMessage && isAssistantMessage(message);
+    if (hadStreamEvents) {
+      this.partialMessage = null;
+      this.streamAssembler.reset();
+      this.usedStreamEventsForCurrentMessage = false;
+      this.streamingFromEvents = false;
+    }
+
     this.messages.push(message);
 
     // 创建新数组以触发 React 重新渲染
@@ -197,7 +317,8 @@ export class StreamingRenderer {
     if (
       this.options.streaming &&
       isAssistantMessage(message) &&
-      this.options.typingEffect
+      this.options.typingEffect &&
+      !hadStreamEvents
     ) {
       this.currentStreamingIndex = messagesCopy.length - 1;
       this.streamCompletePromise = this.createStreamCompletePromise();
@@ -215,6 +336,8 @@ export class StreamingRenderer {
           options={this.options}
           currentStreamingIndex={this.currentStreamingIndex}
           onStreamComplete={this.handleStreamComplete}
+          partialMessage={this.partialMessage}
+          streamingFromEvents={this.streamingFromEvents}
         />
       );
     } else {
@@ -225,6 +348,8 @@ export class StreamingRenderer {
           options={this.options}
           currentStreamingIndex={this.currentStreamingIndex}
           onStreamComplete={this.handleStreamComplete}
+          partialMessage={this.partialMessage}
+          streamingFromEvents={this.streamingFromEvents}
         />
       );
     }
@@ -254,6 +379,10 @@ export class StreamingRenderer {
     this.currentStreamingIndex = -1;
     this.streamCompletePromise = null;
     this.streamCompleteResolve = null;
+    this.partialMessage = null;
+    this.streamingFromEvents = false;
+    this.usedStreamEventsForCurrentMessage = false;
+    this.streamAssembler.reset();
   }
 
   /**

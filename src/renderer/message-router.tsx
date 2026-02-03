@@ -21,6 +21,7 @@ export interface MessageRouterProps {
   message: SDKMessage;
   options: Required<RendererOptions>;
   toolStates: ToolExecutionStateMap;
+  toolOutputPreviewLines?: number;
 }
 
 /**
@@ -37,10 +38,11 @@ export const MessageRouter: React.FC<MessageRouterProps> = ({
   message,
   options,
   toolStates,
+  toolOutputPreviewLines,
 }) => {
   // System 初始化消息
   if (isSystemInitMessage(message)) {
-    return <SystemMessageProxy message={message} />;
+    return <SystemMessageProxy message={message} showSessionInfo={options.showSessionInfo} />;
   }
 
   // Assistant 消息
@@ -51,6 +53,7 @@ export const MessageRouter: React.FC<MessageRouterProps> = ({
         showThinking={options.showThinking}
         showToolDetails={options.showToolDetails}
         showToolContent={options.showToolContent}
+        codeHighlight={options.codeHighlight}
         toolStates={toolStates}
       />
     );
@@ -58,7 +61,13 @@ export const MessageRouter: React.FC<MessageRouterProps> = ({
 
   // User 消息（工具结果）
   if (isUserMessage(message)) {
-    return <ToolResultMessageProxy message={message} maxOutputLines={options.maxOutputLines} />;
+    return (
+      <ToolResultMessageProxy
+        message={message}
+        maxOutputLines={options.maxOutputLines}
+        previewLines={toolOutputPreviewLines}
+      />
+    );
   }
 
   // 最终结果消息
@@ -66,7 +75,10 @@ export const MessageRouter: React.FC<MessageRouterProps> = ({
     return (
       <FinalResultProxy
         message={message}
+        showFinalResult={options.showFinalResult}
+        showExecutionStats={options.showExecutionStats}
         showTokenUsage={options.showTokenUsage}
+        codeHighlight={options.codeHighlight}
       />
     );
   }

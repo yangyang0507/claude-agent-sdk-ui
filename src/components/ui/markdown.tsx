@@ -40,18 +40,30 @@ export interface MarkdownProps {
 export const Markdown: React.FC<MarkdownProps> = ({
   children,
   theme: _theme,
-  highlightCode: _highlightCode = true,
-  maxWidth: _maxWidth,
+  highlightCode = true,
+  maxWidth,
 }) => {
   if (!children || children.trim() === '') {
     return null;
   }
 
   // 配置 marked-terminal 渲染器
+  const renderer = new TerminalRenderer({
+    width: maxWidth ?? 80,
+  });
+
+  // 禁用代码高亮时，使用纯文本输出
+  if (!highlightCode) {
+    renderer.code = (code: any) => {
+      const text = typeof code === 'object' ? code.text : code;
+      const lines = String(text).split('\n').map((line) => `  ${line}`);
+      return `\n${lines.join('\n')}\n\n`;
+    };
+    renderer.codespan = (text: any) => (typeof text === 'object' ? text.text : text);
+  }
+
   setOptions({
-    renderer: new TerminalRenderer({
-      // 可以在这里添加更多配置
-    }),
+    renderer,
   });
 
   // 解析 Markdown 并渲染为文本

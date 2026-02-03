@@ -4,10 +4,11 @@
 
 import React from 'react';
 import { render } from 'ink';
-import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
+import type { SDKAssistantMessage, SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import type { RendererOptions } from '../types/renderer.js';
 import { ThemeProvider } from '../hooks/use-theme.js';
 import { useWaitingState } from '../hooks/use-waiting-state.js';
+import { useCommandMode } from '../hooks/use-command-mode.js';
 import { MessageRouter } from './message-router.js';
 import { normalizeOptions } from './options.js';
 import { deriveToolExecutionState } from '../utils/tool-states.js';
@@ -15,33 +16,60 @@ import { StatusLine } from '../components/ui/status-line.js';
 import { isAssistantMessage, isSystemInitMessage, isStreamEventMessage } from '../types/messages.js';
 import { SessionLogger } from '../utils/logger.js';
 import { AppLayoutProxy } from '../components/proxy/app-layout-proxy.js';
+import { CommandOverlay } from '../components/ui/command-overlay.js';
+import { TimestampLine } from '../components/ui/timestamp-line.js';
+import { formatTimestamp } from '../utils/time.js';
+import { StreamAssembler } from './stream-assembler.js';
 
 interface UIRendererAppProps {
   messages: SDKMessage[];
   options: Required<RendererOptions>;
   isStreaming: boolean;
+  partialMessage?: SDKAssistantMessage | null;
 }
 
 /**
  * 渲染器主应用组件
  */
-const UIRendererApp: React.FC<UIRendererAppProps> = ({ messages, options, isStreaming }) => {
-  const toolStates = React.useMemo(() => deriveToolExecutionState(messages), [messages]);
+const UIRendererApp: React.FC<UIRendererAppProps> = ({
+  messages,
+  options,
+  isStreaming,
+  partialMessage,
+}) => {
+  const commandState = useCommandMode(options);
+  const effectiveOptions = commandState.options;
+  const displayMessages = React.useMemo(
+    () => (partialMessage ? [...messages, partialMessage] : messages),
+    [messages, partialMessage]
+  );
+  const toolStates = React.useMemo(
+    () => deriveToolExecutionState(displayMessages),
+    [displayMessages]
+  );
 
-  // 使用共享的 useWaitingState hook
-  const waitingState = useWaitingState(messages, { isStreaming });
+  const waitingState = useWaitingState(displayMessages, { isStreaming });
 
   return (
-    <ThemeProvider theme={options.theme}>
-      <AppLayoutProxy messages={messages} isStreaming={isStreaming}>
-        {messages.map((message, index) => (
-          <MessageRouter
-            key={index}
-            message={message}
-            options={options}
-            toolStates={toolStates}
-          />
-        ))}
+    <ThemeProvider theme={effectiveOptions.theme}>
+      <AppLayoutProxy messages={displayMessages} isStreaming={isStreaming}>
+        {displayMessages.map((message, index) => {
+          const timestampLabel = effectiveOptions.showTimestamps
+            ? formatMessageTimestamp(message)
+            : null;
+
+          return (
+            <React.Fragment key={index}>
+              {timestampLabel && <TimestampLine timestamp={timestampLabel} marginBottom={0} />}
+              <MessageRouter
+                message={message}
+                options={effectiveOptions}
+                toolStates={toolStates}
+                toolOutputPreviewLines={commandState.toolOutputPreviewLines}
+              />
+            </React.Fragment>
+          );
+        })}
 
         {/* 显示等待状态 */}
         {waitingState.show && (
@@ -52,10 +80,28 @@ const UIRendererApp: React.FC<UIRendererAppProps> = ({ messages, options, isStre
             marginBottom={1}
           />
         )}
+
+        <CommandOverlay
+          commandMode={commandState.commandMode}
+          showHelp={commandState.showHelp}
+          feedback={commandState.feedback}
+        />
       </AppLayoutProxy>
     </ThemeProvider>
   );
 };
+
+function formatMessageTimestamp(message: SDKMessage): string | null {
+  const rawTimestamp = (message as { timestamp?: string | number | Date }).timestamp;
+  if (!rawTimestamp) {
+    return null;
+  }
+  const date = rawTimestamp instanceof Date ? rawTimestamp : new Date(rawTimestamp);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return formatTimestamp(date);
+}
 
 /**
  * 主渲染器类
@@ -76,6 +122,8 @@ export class UIRenderer {
   private logger: SessionLogger | null = null;
   private currentSessionId: string | null = null;
   private isStreaming: boolean = false;
+  private streamAssembler = new StreamAssembler();
+  private partialMessage: SDKAssistantMessage | null = null;
 
   constructor(options: RendererOptions = {}) {
     this.options = normalizeOptions(options);
@@ -99,8 +147,13 @@ export class UIRenderer {
         this.isStreaming = true;
       }
       // message_stop: 结束流式传输
-      else if (eventType === 'message_stop' || eventType === 'message_delta') {
+      else if (eventType === 'message_stop') {
         this.isStreaming = false;
+      }
+
+      const partial = this.streamAssembler.handleEvent(message);
+      if (partial) {
+        this.partialMessage = partial;
       }
 
       // 记录日志但不添加到显示的消息列表
@@ -108,13 +161,23 @@ export class UIRenderer {
         await this.logger.log(message, this.currentSessionId);
       }
 
-      // 重新渲染以更新流式状态
-      if (this.app) {
-        this.app.rerender(
+      const messagesCopy = [...this.messages];
+      if (!this.app) {
+        this.app = render(
           <UIRendererApp
-            messages={[...this.messages]}
+            messages={messagesCopy}
             options={this.options}
             isStreaming={this.isStreaming}
+            partialMessage={this.partialMessage}
+          />
+        );
+      } else {
+        this.app.rerender(
+          <UIRendererApp
+            messages={messagesCopy}
+            options={this.options}
+            isStreaming={this.isStreaming}
+            partialMessage={this.partialMessage}
           />
         );
       }
@@ -123,6 +186,11 @@ export class UIRenderer {
     }
 
     // 非 stream_event 消息，正常处理
+    if (this.partialMessage && isAssistantMessage(message)) {
+      this.partialMessage = null;
+      this.streamAssembler.reset();
+    }
+
     this.messages.push(message);
 
     // 从 system init 消息中提取 session ID
@@ -150,6 +218,7 @@ export class UIRenderer {
           messages={messagesCopy}
           options={this.options}
           isStreaming={this.isStreaming}
+          partialMessage={this.partialMessage}
         />
       );
     } else {
@@ -159,6 +228,7 @@ export class UIRenderer {
           messages={messagesCopy}
           options={this.options}
           isStreaming={this.isStreaming}
+          partialMessage={this.partialMessage}
         />
       );
     }
@@ -188,6 +258,8 @@ export class UIRenderer {
     this.messages = [];
     this.currentSessionId = null;
     this.isStreaming = false;
+    this.partialMessage = null;
+    this.streamAssembler.reset();
   }
 
   /**

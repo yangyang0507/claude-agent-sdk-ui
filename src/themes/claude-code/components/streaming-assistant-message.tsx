@@ -31,6 +31,16 @@ export interface StreamingAssistantMessageProps {
   showToolDetails?: boolean;
 
   /**
+   * 是否显示工具参数中的 content 字段
+   */
+  showToolContent?: boolean;
+
+  /**
+   * 是否启用代码高亮
+   */
+  codeHighlight?: boolean;
+
+  /**
    * 打字机速度（毫秒）
    */
   typingSpeed?: number;
@@ -68,9 +78,11 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
   message,
   showThinking = false,
   showToolDetails = true,
+  showToolContent = false,
   typingSpeed = 20,
   streamingEnabled = true,
   onStreamComplete,
+  codeHighlight = true,
   toolStates = {},
 }) => {
   const theme = useTheme();
@@ -195,7 +207,7 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
                       ) : (
                         <Markdown
                           theme={theme}
-                          highlightCode={true}
+                          highlightCode={codeHighlight}
                           maxWidth={theme.layout.maxWidth ?? 120}
                         >
                           {parsed.content}
@@ -219,7 +231,7 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
           }
 
           const sanitizedInput = sanitizeToolInput(input, {
-            showContent: false,
+            showContent: showToolContent,
           });
           const summary = summarizeToolInput(name, sanitizedInput);
           const details = showToolDetails ? extractToolDetailLines(sanitizedInput) : [];

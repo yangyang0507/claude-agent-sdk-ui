@@ -103,6 +103,7 @@ export interface AssistantMessageProps {
   showThinking?: boolean;
   showToolDetails?: boolean;
   showToolContent?: boolean;
+  codeHighlight?: boolean;
   toolStates?: ToolExecutionStateMap;
 }
 
@@ -121,6 +122,7 @@ export interface StreamingAssistantMessageProps extends AssistantMessageProps {
 export interface ToolResultMessageProps {
   message: SDKUserMessage;
   maxOutputLines?: number;
+  previewLines?: number;
 }
 
 /**
@@ -128,6 +130,7 @@ export interface ToolResultMessageProps {
  */
 export interface SystemMessageProps {
   message: SDKSystemMessage;
+  showSessionInfo?: boolean;
 }
 
 /**
@@ -135,7 +138,10 @@ export interface SystemMessageProps {
  */
 export interface FinalResultProps {
   message: SDKResultMessage;
+  showFinalResult?: boolean;
+  showExecutionStats?: boolean;
   showTokenUsage?: boolean;
+  codeHighlight?: boolean;
 }
 
 /**
