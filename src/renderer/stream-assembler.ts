@@ -6,11 +6,16 @@
 import type { SDKAssistantMessage, SDKPartialAssistantMessage } from '@anthropic-ai/claude-agent-sdk';
 import type { MessageContent } from '../types/messages.js';
 
+interface StreamEventMessagePayload {
+  role?: string;
+  content?: unknown[];
+}
+
 type StreamEventMessage = SDKPartialAssistantMessage & {
   event?: {
     type?: string;
     index?: number;
-    message?: any;
+    message?: StreamEventMessagePayload;
     content_block?: {
       type?: string;
       id?: string;
@@ -31,11 +36,16 @@ type PendingToolUse = {
   inputJson: string;
 };
 
+interface BaseMessage {
+  role: string;
+  content: MessageContent[];
+}
+
 export class StreamAssembler {
-  private baseMessage: any | null = null;
+  private baseMessage: BaseMessage | null = null;
   private blocks = new Map<number, MessageContent>();
   private pendingToolUses = new Map<number, PendingToolUse>();
-  private meta: { uuid?: any; session_id?: string; parent_tool_use_id?: string | null } = {};
+  private meta: { uuid?: string; session_id?: string; parent_tool_use_id?: string | null } = {};
 
   reset(): void {
     this.baseMessage = null;
@@ -58,9 +68,9 @@ export class StreamAssembler {
           session_id: message.session_id,
           parent_tool_use_id: message.parent_tool_use_id ?? null,
         };
-        const rawMessage = (event as any).message;
+        const rawMessage = event.message;
         this.baseMessage = rawMessage && typeof rawMessage === 'object'
-          ? { ...rawMessage, content: [] }
+          ? { role: rawMessage.role ?? 'assistant', content: [] }
           : { role: 'assistant', content: [] };
         return this.buildMessage();
       }

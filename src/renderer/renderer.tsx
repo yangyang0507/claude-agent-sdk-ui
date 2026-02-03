@@ -142,6 +142,11 @@ export class UIRenderer {
   async render(message: SDKMessage): Promise<void> {
     // 如果是 stream_event，更新流式状态但不添加到消息列表
     if (isStreamEventMessage(message)) {
+      // 如果还没有 sessionId，忽略 stream_event（不记录日志也不渲染）
+      if (!this.currentSessionId) {
+        return;
+      }
+
       const eventType = message.event?.type;
 
       // message_start: 开始流式传输
@@ -159,7 +164,7 @@ export class UIRenderer {
       }
 
       // 记录日志但不添加到显示的消息列表
-      if (this.logger && this.currentSessionId) {
+      if (this.logger) {
         await this.logger.log(message, this.currentSessionId);
       }
 

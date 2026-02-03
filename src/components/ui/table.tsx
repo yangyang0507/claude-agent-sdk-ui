@@ -11,7 +11,7 @@ import type { Theme } from '../../types/theme.js';
 /**
  * 表格数据类型
  */
-export type TableData = Record<string, any>[];
+export type TableData = Record<string, unknown>[];
 
 /**
  * Table 组件属性

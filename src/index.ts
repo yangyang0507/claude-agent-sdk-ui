@@ -117,7 +117,7 @@ export async function render(
  * ```
  */
 export async function renderQuery(
-  queryGenerator: AsyncGenerator<SDKMessage, any, any>,
+  queryGenerator: AsyncGenerator<SDKMessage, void, unknown>,
   options?: RendererOptions
 ): Promise<void> {
   const renderer = new UIRenderer(options);
@@ -194,7 +194,7 @@ export function createStreamingRenderer(options?: RendererOptions): StreamingRen
  * ```
  */
 export async function renderQueryStreaming(
-  queryGenerator: AsyncGenerator<SDKMessage, any, any>,
+  queryGenerator: AsyncGenerator<SDKMessage, void, unknown>,
   options?: RendererOptions
 ): Promise<void> {
   const renderer = new StreamingRenderer(options);

@@ -54,12 +54,12 @@ export const Markdown: React.FC<MarkdownProps> = ({
 
   // 禁用代码高亮时，使用纯文本输出
   if (!highlightCode) {
-    renderer.code = (code: any) => {
-      const text = typeof code === 'object' ? code.text : code;
+    renderer.code = (code: string | { text?: string }) => {
+      const text = typeof code === 'object' ? code.text ?? '' : code;
       const lines = String(text).split('\n').map((line) => `  ${line}`);
       return `\n${lines.join('\n')}\n\n`;
     };
-    renderer.codespan = (text: any) => (typeof text === 'object' ? text.text : text);
+    renderer.codespan = (text: string | { text?: string }) => (typeof text === 'object' ? text.text ?? '' : text);
   }
 
   setOptions({

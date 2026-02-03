@@ -80,11 +80,11 @@ export function useCommandMode(options: Required<RendererOptions>): CommandModeS
     (key: keyof RendererOptions, label: string) => {
       setOverrides((prev) => {
         const current = prev[key] ?? options[key];
-        const nextValue = !current as any;
+        const nextValue = !current;
         pushFeedback(`${label}: ${nextValue ? 'ON' : 'OFF'}`);
         return {
           ...prev,
-          [key]: nextValue,
+          [key]: nextValue as RendererOptions[typeof key],
         };
       });
     },

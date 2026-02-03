@@ -147,17 +147,20 @@ describe('UIRenderer', () => {
     logger.log.mockClear();
     inkMocks.app.rerender.mockClear();
 
+    // message_start: 开始流式传输，isStreaming = true
     await renderer.render(createStreamEvent('message_start'));
     expect(logger.log).toHaveBeenCalledTimes(1);
     expect(renderer.getMessages()).toHaveLength(1);
     expect(inkMocks.app.rerender).toHaveBeenCalledTimes(1);
     expect(inkMocks.lastRerenderElement.props.isStreaming).toBe(true);
 
+    // message_delta: 流式传输中，isStreaming 保持 true
     await renderer.render(createStreamEvent('message_delta'));
     expect(logger.log).toHaveBeenCalledTimes(2);
     expect(inkMocks.app.rerender).toHaveBeenCalledTimes(2);
-    expect(inkMocks.lastRerenderElement.props.isStreaming).toBe(false);
+    expect(inkMocks.lastRerenderElement.props.isStreaming).toBe(true);
 
+    // message_stop: 结束流式传输，isStreaming = false
     await renderer.render(createStreamEvent('message_stop'));
     expect(logger.log).toHaveBeenCalledTimes(3);
     expect(inkMocks.app.rerender).toHaveBeenCalledTimes(3);

@@ -109,7 +109,7 @@ export const Badge: React.FC<BadgeProps> = ({
 
   // filled 样式
   return (
-    <Text bold={bold} backgroundColor={badgeColor as any} color="black">
+    <Text bold={bold} backgroundColor={badgeColor} color="black">
       {` ${text} `}
     </Text>
   );

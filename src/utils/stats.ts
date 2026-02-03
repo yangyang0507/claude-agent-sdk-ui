@@ -169,5 +169,10 @@ function parseTimestamp(value?: string): number | null {
 }
 
 function isSdkMessage(message: unknown): message is SDKMessage {
-  return Boolean(message && typeof message === 'object' && (message as any).type !== 'internal');
+  return Boolean(
+    message &&
+    typeof message === 'object' &&
+    'type' in message &&
+    (message as { type: unknown }).type !== 'internal'
+  );
 }
