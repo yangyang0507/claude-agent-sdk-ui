@@ -103,6 +103,13 @@ describe('UIRenderer', () => {
     expect(renderer.getLogFilePath()).toBe(null);
   });
 
+  it('启用日志时 getLogger 应返回实例', () => {
+    const renderer = new UIRenderer({ logging: { enabled: true, verbose: true } });
+
+    expect(loggerMocks.instances).toHaveLength(1);
+    expect(renderer.getLogger()).toBe(loggerMocks.instances[0]);
+  });
+
   it('应该在 session_id 可用后记录日志', async () => {
     const renderer = new UIRenderer({ logging: { enabled: true } });
     const logger = loggerMocks.instances[0];
@@ -157,6 +164,17 @@ describe('UIRenderer', () => {
     expect(inkMocks.lastRerenderElement.props.isStreaming).toBe(false);
   });
 
+  it('assistant 消息应结束流式状态', async () => {
+    const renderer = new UIRenderer();
+
+    await renderer.render(createSystemInit('session-end'));
+    await renderer.render(createStreamEvent('message_start'));
+    expect(inkMocks.lastRerenderElement.props.isStreaming).toBe(true);
+
+    await renderer.render(createAssistant());
+    expect(inkMocks.lastRerenderElement.props.isStreaming).toBe(false);
+  });
+
   it('cleanup 应该释放资源并重置状态', async () => {
     const renderer = new UIRenderer({ logging: { enabled: true } });
     const logger = loggerMocks.instances[0];
@@ -167,5 +185,26 @@ describe('UIRenderer', () => {
     expect(inkMocks.app.unmount).toHaveBeenCalledTimes(1);
     expect(logger.close).toHaveBeenCalledTimes(1);
     expect(renderer.getMessages()).toHaveLength(0);
+  });
+
+  it('reset 应调用 cleanup 并重置状态', async () => {
+    const renderer = new UIRenderer();
+
+    await renderer.render(createSystemInit('session-reset'));
+    await renderer.reset();
+
+    expect(inkMocks.app.unmount).toHaveBeenCalledTimes(1);
+    expect(renderer.getMessages()).toHaveLength(0);
+  });
+
+  it('cleanup 后再次 render 应重新创建 app', async () => {
+    const renderer = new UIRenderer();
+
+    await renderer.render(createSystemInit('session-a'));
+    await renderer.cleanup();
+
+    await renderer.render(createSystemInit('session-b'));
+
+    expect(inkMocks.render).toHaveBeenCalledTimes(2);
   });
 });

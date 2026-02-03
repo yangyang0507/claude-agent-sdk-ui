@@ -8,6 +8,14 @@ import {
 } from '../../src/themes/index.js';
 import type { Theme } from '../../src/types/theme.js';
 
+const baseComponents = {
+  assistantMessage: (_: any) => null,
+  streamingAssistantMessage: (_: any) => null,
+  toolResultMessage: (_: any) => null,
+  systemMessage: (_: any) => null,
+  finalResult: (_: any) => null,
+};
+
 describe('getTheme', () => {
   it('应该返回默认主题（claude-code）当没有输入时', () => {
     const theme = getTheme();
@@ -78,6 +86,7 @@ describe('createTheme', () => {
       colors: {
         primary: '#FF0000',
       } as any,
+      components: baseComponents,
     });
 
     expect(customTheme.name).toBe('my-theme');
@@ -86,6 +95,7 @@ describe('createTheme', () => {
     expect(customTheme.symbols).toEqual(claudeCodeTheme.symbols);
     expect(customTheme.borders).toEqual(claudeCodeTheme.borders);
     expect(customTheme.layout).toEqual(claudeCodeTheme.layout);
+    expect(customTheme.components).toBe(baseComponents);
   });
 
   it('应该允许覆盖颜色配置', () => {
@@ -96,6 +106,7 @@ describe('createTheme', () => {
         success: '#00FF00',
         error: '#0000FF',
       } as any,
+      components: baseComponents,
     });
 
     expect(customTheme.colors.primary).toBe('#FF0000');
@@ -111,6 +122,7 @@ describe('createTheme', () => {
         success: '✅',
         error: '❌',
       } as any,
+      components: baseComponents,
     });
 
     expect(customTheme.symbols.success).toBe('✅');
@@ -126,6 +138,7 @@ describe('createTheme', () => {
         style: 'double',
         color: '#FF0000',
       },
+      components: baseComponents,
     });
 
     expect(customTheme.borders.style).toBe('double');
@@ -139,6 +152,7 @@ describe('createTheme', () => {
         indent: 4,
         maxWidth: 80,
       } as any,
+      components: baseComponents,
     });
 
     expect(customTheme.layout.indent).toBe(4);
@@ -155,6 +169,7 @@ describe('createTheme', () => {
       symbols: {
         bullet: '▪',
       } as any,
+      components: baseComponents,
     });
 
     expect(customTheme.colors.primary).toBe('#123456');
@@ -164,6 +179,11 @@ describe('createTheme', () => {
   });
 
   it('应该创建完全自定义的主题', () => {
+    const components = {
+      ...baseComponents,
+      appLayout: (_: any) => null,
+    };
+
     const customTheme = createTheme({
       name: 'fully-custom',
       colors: {
@@ -200,6 +220,7 @@ describe('createTheme', () => {
         componentSpacing: 3,
         maxWidth: 150,
       },
+      components,
     });
 
     expect(customTheme.name).toBe('fully-custom');

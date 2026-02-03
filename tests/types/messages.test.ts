@@ -15,6 +15,7 @@ import {
   isToolUseContent,
   isToolResultContent,
   isStreamEventMessage,
+  isPartialAssistantMessage,
 } from '../../src/types/messages.js';
 
 describe('消息类型守卫', () => {
@@ -109,6 +110,18 @@ describe('消息类型守卫', () => {
     it('应该拒绝非 stream_event 类型消息', () => {
       const message = { type: 'assistant' };
       expect(isStreamEventMessage(message as any)).toBe(false);
+    });
+  });
+
+  describe('isPartialAssistantMessage', () => {
+    it('应该识别 stream_event 作为 partial assistant 消息', () => {
+      const message = { type: 'stream_event', event: { type: 'message_start' } };
+      expect(isPartialAssistantMessage(message as any)).toBe(true);
+    });
+
+    it('应该拒绝非 stream_event 消息', () => {
+      const message = { type: 'assistant' };
+      expect(isPartialAssistantMessage(message as any)).toBe(false);
     });
   });
 });

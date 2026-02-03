@@ -8,6 +8,7 @@ const replayMocks = vi.hoisted(() => ({
   streamingInstances: [] as any[],
   uiRenderCalls: [] as SDKMessage[],
   streamingRenderCalls: [] as SDKMessage[],
+  uiRenderImpl: null as null | ((message: SDKMessage) => void | Promise<void>),
 }));
 
 vi.mock('node:fs/promises', () => ({
@@ -25,6 +26,9 @@ vi.mock('../../src/renderer/renderer.js', () => {
 
     async render(message: SDKMessage): Promise<void> {
       replayMocks.uiRenderCalls.push(message);
+      if (replayMocks.uiRenderImpl) {
+        await replayMocks.uiRenderImpl(message);
+      }
     }
 
     async cleanup(): Promise<void> {
@@ -68,6 +72,7 @@ describe('LogReplayer', () => {
     replayMocks.streamingInstances.length = 0;
     replayMocks.uiRenderCalls.length = 0;
     replayMocks.streamingRenderCalls.length = 0;
+    replayMocks.uiRenderImpl = null;
   });
 
   afterEach(() => {
@@ -120,6 +125,35 @@ describe('LogReplayer', () => {
 
     await replayer.cleanup();
     expect(replayMocks.uiInstances[0].cleanupCalled).toBe(true);
+  });
+
+  it('不过滤 stream_event 时应渲染 stream_event 消息', async () => {
+    const entries = [
+      {
+        timestamp: '2024-01-01T00:00:00.000Z',
+        sessionId: 's1',
+        messageType: 'stream_event',
+        message: { type: 'stream_event', event: { type: 'message_start' } },
+      },
+      {
+        timestamp: '2024-01-01T00:00:01.000Z',
+        sessionId: 's1',
+        messageType: 'assistant',
+        message: { type: 'assistant', message: { content: [] } },
+      },
+    ];
+
+    replayMocks.readFile.mockResolvedValue(makeLogContent(entries));
+
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    const replayer = new LogReplayer();
+    await replayer.replay('logs/with-stream.jsonl', { filterStreamEvents: false });
+
+    expect(replayMocks.uiRenderCalls.map((msg) => msg.type)).toEqual([
+      'stream_event',
+      'assistant',
+    ]);
   });
 
   it('streaming 模式应该使用 StreamingRenderer', async () => {
@@ -219,6 +253,18 @@ describe('LogReplayer', () => {
     expect(fixedDelayCalls).toHaveLength(2);
   });
 
+  it('空日志文件应创建渲染器但不渲染消息', async () => {
+    replayMocks.readFile.mockResolvedValue('');
+
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    const replayer = new LogReplayer();
+    await replayer.replay('logs/empty.jsonl');
+
+    expect(replayMocks.uiInstances).toHaveLength(1);
+    expect(replayMocks.uiRenderCalls).toHaveLength(0);
+  });
+
   it('应该忽略无效日志行并继续重放有效消息', async () => {
     const entries = [
       JSON.stringify({
@@ -251,6 +297,18 @@ describe('LogReplayer', () => {
       'user',
     ]);
   });
+
+  it('读取日志失败时应抛出错误并不渲染消息', async () => {
+    replayMocks.readFile.mockRejectedValue(new Error('read failed'));
+
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    const replayer = new LogReplayer();
+
+    await expect(replayer.replay('logs/missing.jsonl')).rejects.toThrow('read failed');
+    expect(replayMocks.uiRenderCalls).toHaveLength(0);
+    expect(replayMocks.streamingRenderCalls).toHaveLength(0);
+  });
 });
 
 describe('replayLog', () => {
@@ -282,5 +340,47 @@ describe('replayLog', () => {
 
     expect(replayMocks.uiInstances).toHaveLength(1);
     expect(replayMocks.uiInstances[0].cleanupCalled).toBe(true);
+  });
+
+  it('重放失败也应调用 cleanup', async () => {
+    replayMocks.readFile.mockRejectedValue(new Error('boom'));
+
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const cleanupSpy = vi.spyOn(LogReplayer.prototype, 'cleanup');
+
+    await expect(replayLog('logs/missing.jsonl')).rejects.toThrow('boom');
+
+    expect(cleanupSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('渲染阶段失败也应调用 cleanup', async () => {
+    replayMocks.readFile.mockResolvedValue(
+      makeLogContent([
+        {
+          timestamp: '2024-01-01T00:00:00.000Z',
+          sessionId: 's1',
+          messageType: 'assistant',
+          message: { type: 'assistant', message: { content: [] } },
+        },
+        {
+          timestamp: '2024-01-01T00:00:01.000Z',
+          sessionId: 's1',
+          messageType: 'user',
+          message: { type: 'user', message: { content: [] } },
+        },
+      ])
+    );
+
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const cleanupSpy = vi.spyOn(LogReplayer.prototype, 'cleanup');
+    replayMocks.uiRenderImpl = (message) => {
+      if (message.type === 'user') {
+        throw new Error('render failed');
+      }
+    };
+
+    await expect(replayLog('logs/render-fail.jsonl')).rejects.toThrow('render failed');
+
+    expect(cleanupSpy).toHaveBeenCalledTimes(1);
   });
 });
