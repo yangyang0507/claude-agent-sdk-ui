@@ -17,6 +17,7 @@ import { sanitizeToolInput, summarizeToolInput } from '../utils/tools.js';
 export class StatsTracker {
   private state: RendererState;
   private lastResult: SDKResultMessage | null = null;
+  private history: SDKMessage[] = [];
 
   constructor() {
     this.state = this.createEmptyState();
@@ -25,9 +26,10 @@ export class StatsTracker {
   reset(): void {
     this.state = this.createEmptyState();
     this.lastResult = null;
+    this.history = [];
   }
 
-  update(message: SDKMessage, timestamp: number = Date.now()): void {
+  update(message: SDKMessage, timestamp: number = Date.now(), recordHistory: boolean = true): void {
     if (!this.state.startTime) {
       this.state.startTime = timestamp;
     }
@@ -87,6 +89,18 @@ export class StatsTracker {
       this.state.totalCost = message.total_cost_usd ?? 0;
       this.state.endTime = timestamp;
     }
+
+    if (recordHistory) {
+      this.history.push(message);
+    }
+  }
+
+  trimHistory(messages: SDKMessage[]): void {
+    if (messages.length === this.history.length && messages.every((item, index) => item === this.history[index])) {
+      return;
+    }
+    this.history = [...messages];
+    this.rebuild();
   }
 
   getState(): RendererState {
@@ -144,5 +158,15 @@ export class StatsTracker {
       endTime: null,
       processedMessages: 0,
     };
+  }
+
+  private rebuild(): void {
+    this.state = this.createEmptyState();
+    this.lastResult = null;
+
+    let now = Date.now();
+    for (const message of this.history) {
+      this.update(message, now, false);
+    }
   }
 }

@@ -252,8 +252,9 @@ export class UIRenderer {
 
     this.statsTracker.update(message);
     this.messages.push(message);
+    const beforeMessages = this.messages;
     const trimmed = trimMessages(this.messages, this.options.maxMessages);
-    const trimmedChanged = trimmed !== this.messages;
+    const trimmedChanged = trimmed !== beforeMessages;
     this.messages = trimmed;
 
     // 从 system init 消息中提取 session ID
@@ -269,6 +270,7 @@ export class UIRenderer {
     updateToolExecutionState(this.toolStates, message);
     if (trimmedChanged) {
       this.toolStates = deriveToolExecutionState(this.messages);
+      this.statsTracker.trimHistory(this.messages);
     }
 
     // 记录日志

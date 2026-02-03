@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { analyzeLogEntries, formatSessionSummary } from '../../src/utils/stats.js';
+import { StatsTracker } from '../../src/renderer/stats-tracker.js';
+import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 
 describe('stats utils', () => {
   it('summarizes log entries with tool calls and result stats', () => {
@@ -62,5 +64,45 @@ describe('stats utils', () => {
 
     const summary = formatSessionSummary(analysis);
     expect(summary).toContain('Tool calls: 1');
+  });
+});
+
+describe('StatsTracker', () => {
+  it('trimHistory 应保持统计可用', () => {
+    const tracker = new StatsTracker();
+
+    const system = {
+      type: 'system',
+      subtype: 'init',
+      session_id: 'session-1',
+    } as SDKMessage;
+
+    const assistant = {
+      type: 'assistant',
+      message: { content: [] },
+    } as SDKMessage;
+
+    const result = {
+      type: 'result',
+      subtype: 'success',
+      usage: {
+        input_tokens: 10,
+        output_tokens: 5,
+        cache_read_input_tokens: 0,
+        cache_creation_input_tokens: 0,
+      },
+      total_cost_usd: 0.01,
+    } as SDKMessage;
+
+    tracker.update(system, 1000);
+    tracker.update(assistant, 2000);
+    tracker.update(result, 3000);
+
+    tracker.trimHistory([system, result]);
+
+    const stats = tracker.getStats();
+    expect(stats?.tokens.input_tokens).toBe(10);
+    expect(stats?.tokens.output_tokens).toBe(5);
+    expect(stats?.cost).toBe(0.01);
   });
 });

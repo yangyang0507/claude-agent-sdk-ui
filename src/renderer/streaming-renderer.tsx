@@ -376,8 +376,9 @@ export class StreamingRenderer {
 
     this.statsTracker.update(message);
     this.messages.push(message);
+    const beforeMessages = this.messages;
     const trimmed = trimMessages(this.messages, this.options.maxMessages);
-    const trimmedChanged = trimmed !== this.messages;
+    const trimmedChanged = trimmed !== beforeMessages;
     this.messages = trimmed;
 
     // 创建新数组以触发 React 重新渲染
@@ -403,6 +404,7 @@ export class StreamingRenderer {
     updateToolExecutionState(this.toolStates, message);
     if (trimmedChanged) {
       this.toolStates = deriveToolExecutionState(this.messages);
+      this.statsTracker.trimHistory(this.messages);
     }
 
     const onStreamComplete = this.createStreamCompleteCallback(this.streamCompleteToken);
