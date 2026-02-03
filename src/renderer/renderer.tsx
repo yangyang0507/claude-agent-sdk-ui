@@ -93,10 +93,15 @@ const UIRendererApp: React.FC<UIRendererAppProps> = ({
     () => (partialMessage ? [...messages, partialMessage] : messages),
     [messages, partialMessage]
   );
-  const effectiveToolStates = React.useMemo(
-    () => (partialMessage ? deriveToolExecutionState(displayMessages) : toolStates),
-    [displayMessages, partialMessage, toolStates]
-  );
+  const effectiveToolStates = React.useMemo(() => {
+    if (!partialMessage) {
+      return toolStates;
+    }
+
+    const nextState = { ...toolStates };
+    updateToolExecutionState(nextState, partialMessage);
+    return nextState;
+  }, [partialMessage, toolStates]);
 
   const waitingState = useWaitingState(displayMessages, { isStreaming });
 
