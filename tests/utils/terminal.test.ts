@@ -20,6 +20,10 @@ import {
   gradient,
   rainbow,
   createProgressBar,
+  write,
+  writeLine,
+  writeError,
+  writeErrorLine,
   sleep,
   getEnvConfig,
 } from '../../src/utils/terminal.js';
@@ -502,6 +506,46 @@ describe('createProgressBar', () => {
   it('应该处理 total 为 0 的情况', () => {
     const result = createProgressBar(0, 0);
     expect(result).toContain('%');
+  });
+});
+
+describe('write/writeLine', () => {
+  it('write 应输出到 stdout', () => {
+    const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+    write('hello');
+
+    expect(writeSpy).toHaveBeenCalledWith('hello');
+    writeSpy.mockRestore();
+  });
+
+  it('writeLine 应追加换行', () => {
+    const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+    writeLine('line');
+
+    expect(writeSpy).toHaveBeenCalledWith('line\n');
+    writeSpy.mockRestore();
+  });
+});
+
+describe('writeError/writeErrorLine', () => {
+  it('writeError 应输出到 stderr', () => {
+    const writeSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    writeError('oops');
+
+    expect(writeSpy).toHaveBeenCalledWith('oops');
+    writeSpy.mockRestore();
+  });
+
+  it('writeErrorLine 应追加换行', () => {
+    const writeSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    writeErrorLine('oops');
+
+    expect(writeSpy).toHaveBeenCalledWith('oops\n');
+    writeSpy.mockRestore();
   });
 });
 

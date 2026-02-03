@@ -160,6 +160,15 @@ describe('truncateOutput', () => {
 
     expect(result).toContain('...');
   });
+
+  it('当 maxLines 很小应仅返回省略行', () => {
+    const lines = Array.from({ length: 5 }, (_, i) => `line ${i + 1}`);
+    const text = lines.join('\n');
+    const result = truncateOutput(text, 1);
+
+    const expected = ['... (truncated) ...', ...lines].join('\n');
+    expect(result).toBe(expected);
+  });
 });
 
 describe('indent', () => {
@@ -262,6 +271,11 @@ describe('formatBytes', () => {
     expect(formatBytes(1024)).toBe('1.00 KB');
     expect(formatBytes(1024 * 1024)).toBe('1.00 MB');
   });
+
+  it('应格式化 GB/TB', () => {
+    expect(formatBytes(1024 * 1024 * 1024)).toBe('1.00 GB');
+    expect(formatBytes(1024 * 1024 * 1024 * 1024)).toBe('1.00 TB');
+  });
 });
 
 describe('pluralize', () => {
@@ -299,6 +313,13 @@ describe('parseThinkingTags', () => {
   it('无标签时返回原始文本', () => {
     const result = parseThinkingTags('just text');
     expect(result).toEqual([{ type: 'text', content: 'just text' }]);
+  });
+
+  it('支持自定义标签列表', () => {
+    const result = parseThinkingTags('Hi <custom>ok</custom>!', ['custom']);
+
+    expect(result).toHaveLength(3);
+    expect(result[1]).toEqual({ type: 'thinking', content: 'ok' });
   });
 });
 

@@ -218,6 +218,14 @@ describe('extractToolDetailLines', () => {
     expect(lines).toEqual(['detail: value']);
   });
 
+  it('应该处理无法序列化的值', () => {
+    const value: any = {};
+    value.self = value;
+    const lines = extractToolDetailLines({ data: value });
+
+    expect(lines).toEqual(['data: [unsupported]']);
+  });
+
   it('应该处理空输入', () => {
     expect(extractToolDetailLines({})).toEqual([]);
     expect(extractToolDetailLines(null as any)).toEqual([]);
