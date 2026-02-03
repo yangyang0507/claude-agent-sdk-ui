@@ -222,6 +222,39 @@ npm run demo:themes
 - `examples/theme-templates/minimal-theme.ts` - 仅调整颜色与符号的最小主题模板
 - `examples/theme-templates/card-theme.tsx` - 卡片式布局主题模板
 
+### 主题校验与最小模板
+
+从 v1.1.1 起，主题系统在开发环境会校验缺失字段并给出警告。你可以在自定义主题完成后调用校验函数：
+
+```typescript
+import { validateTheme } from 'claude-agent-sdk-ui/themes';
+
+const result = validateTheme(myTheme);
+if (!result.valid) {
+  console.warn('Missing fields:', result.missing);
+}
+```
+
+也可以从最小模板开始改：
+
+```typescript
+import { MINIMAL_THEME_TEMPLATE } from 'claude-agent-sdk-ui/themes';
+
+const myTheme = {
+  ...MINIMAL_THEME_TEMPLATE,
+  name: 'my-theme',
+  colors: {
+    ...MINIMAL_THEME_TEMPLATE.colors,
+    primary: '#5BB98C',
+  },
+  components: {
+    ...MINIMAL_THEME_TEMPLATE.components,
+    assistantMessage: MyAssistantMessage,
+    streamingAssistantMessage: MyStreamingAssistantMessage,
+  },
+};
+```
+
 ### Droid 卡片式布局
 
 ```typescript
