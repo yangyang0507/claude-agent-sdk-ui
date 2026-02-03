@@ -8,10 +8,12 @@ import { MessageRouter } from '../src/renderer/message-router.js';
 import { deriveToolExecutionState } from '../src/utils/tool-states.js';
 import { normalizeOptions } from '../src/renderer/options.js';
 import { getTheme } from '../src/themes/index.js';
+import { cardTheme } from './theme-templates/card-theme.js';
+import { minimalTheme } from './theme-templates/minimal-theme.js';
 import { TimestampLine } from '../src/components/ui/timestamp-line.js';
 import { formatTimestamp } from '../src/utils/time.js';
 
-const THEME_ORDER = ['claude-code', 'droid'] as const;
+const THEME_ORDER = ['claude-code', 'droid', 'card', 'minimal'] as const;
 const TOOL_OUTPUT_PREVIEW_LINES = 8;
 
 const BASE_OPTIONS: RendererOptions = {
@@ -137,7 +139,17 @@ const ThemePreviewApp: React.FC = () => {
   const [toolOutputCollapsed, setToolOutputCollapsed] = React.useState(false);
 
   const themeName = THEME_ORDER[themeIndex % THEME_ORDER.length];
-  const effectiveOptions = normalizeOptions({ ...options, theme: themeName });
+  const themeMap = {
+    card: cardTheme,
+    minimal: minimalTheme,
+  } as const;
+  const resolvedTheme = themeName in themeMap
+    ? themeMap[themeName as keyof typeof themeMap]
+    : getTheme(themeName);
+  const effectiveOptions = normalizeOptions({
+    ...options,
+    theme: resolvedTheme.name,
+  });
   const toolStates = React.useMemo(
     () => deriveToolExecutionState(SAMPLE_MESSAGES),
     []
@@ -192,14 +204,14 @@ const ThemePreviewApp: React.FC = () => {
   });
 
   return (
-    <ThemeProvider theme={getTheme(themeName)}>
+    <ThemeProvider theme={resolvedTheme}>
       <Box flexDirection="column">
         <Box flexDirection="column" marginBottom={1}>
           <Text>
             Theme Preview (◀/▶ to switch, q to quit)
           </Text>
           <Text>
-            Theme: {themeName}
+            Theme: {resolvedTheme.name}
           </Text>
           <Text dimColor>
             t Thinking | d Tool details | c Collapse tool output | m Code highlight
