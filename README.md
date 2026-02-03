@@ -220,6 +220,41 @@ const myTheme = createTheme({
 const renderer = createRenderer({ theme: myTheme });
 ```
 
+#### Validate Themes (Dev Mode)
+
+In development, the theme system warns about missing required fields. You can also validate explicitly:
+
+```typescript
+import { validateTheme } from 'claude-agent-sdk-ui/themes';
+
+const result = validateTheme(myTheme);
+if (!result.valid) {
+  console.warn('Missing fields:', result.missing);
+}
+```
+
+#### Minimal Theme Template
+
+Start from a safe minimum:
+
+```typescript
+import { MINIMAL_THEME_TEMPLATE } from 'claude-agent-sdk-ui/themes';
+
+const myTheme = {
+  ...MINIMAL_THEME_TEMPLATE,
+  name: 'my-theme',
+  colors: {
+    ...MINIMAL_THEME_TEMPLATE.colors,
+    primary: '#5BB98C',
+  },
+  components: {
+    ...MINIMAL_THEME_TEMPLATE.components,
+    assistantMessage: MyAssistantMessage,
+    streamingAssistantMessage: MyStreamingAssistantMessage,
+  },
+};
+```
+
 #### Advanced Theme (Custom Layout)
 
 For complete layout control, create custom component implementations:
@@ -246,6 +281,8 @@ export const myTheme: Theme = {
 ```
 
 📚 **See the [Custom Layout Theme Guide](./docs/custom-layout-theme.md) for detailed instructions.**
+
+🧪 **Preview themes quickly:** `npm run demo:themes`
 
 ---
 

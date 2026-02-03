@@ -220,6 +220,41 @@ const myTheme = createTheme({
 const renderer = createRenderer({ theme: myTheme });
 ```
 
+#### 主题校验（开发环境）
+
+开发环境下主题系统会提示缺失字段，也可以显式校验：
+
+```typescript
+import { validateTheme } from 'claude-agent-sdk-ui/themes';
+
+const result = validateTheme(myTheme);
+if (!result.valid) {
+  console.warn('缺失字段:', result.missing);
+}
+```
+
+#### 最小主题模板
+
+从最小模板开始更安全：
+
+```typescript
+import { MINIMAL_THEME_TEMPLATE } from 'claude-agent-sdk-ui/themes';
+
+const myTheme = {
+  ...MINIMAL_THEME_TEMPLATE,
+  name: 'my-theme',
+  colors: {
+    ...MINIMAL_THEME_TEMPLATE.colors,
+    primary: '#5BB98C',
+  },
+  components: {
+    ...MINIMAL_THEME_TEMPLATE.components,
+    assistantMessage: MyAssistantMessage,
+    streamingAssistantMessage: MyStreamingAssistantMessage,
+  },
+};
+```
+
 #### 高级主题（自定义布局）
 
 要实现完全的布局控制，可以创建自定义组件实现：
@@ -246,6 +281,8 @@ export const myTheme: Theme = {
 ```
 
 📚 **详见[自定义布局主题指南](./docs/custom-layout-theme.md)获取详细说明。**
+
+🧪 **快速预览主题：** `npm run demo:themes`
 
 ---
 
