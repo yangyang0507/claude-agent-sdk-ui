@@ -121,3 +121,7 @@ Thumbs.db
 *.backup
 logs/
 *.tape
+
+# AI
+.claude/
+.codex/
