@@ -373,6 +373,57 @@ await replayLog('logs/session-xxx.jsonl', {
 });
 ```
 
+### 重放统计与摘要
+
+重放系统现在包含了全面的统计追踪功能：
+
+**摘要输出** 包括：
+- 📊 会话时长和消息数量
+- 🔧 工具执行统计（成功率/失败率）
+- 💬 Token 使用量分析（输入/输出/缓存）
+- ⏱️ 性能指标和时序信息
+- 📈 执行流程分析
+
+**示例摘要**：
+```bash
+npm run replay -- logs/session-xxx.jsonl --summary
+```
+
+输出：
+```
+会话摘要
+========
+时长：45.2 秒
+消息：总计 28 条（12 条助手消息，8 条工具结果，8 条系统消息）
+Token：总计 15,234（8,421 输入，6,813 输出）
+
+工具执行
+========
+Read：5 次调用（100% 成功，平均 234ms）
+Grep：3 次调用（100% 成功，平均 189ms）
+Bash：2 次调用（100% 成功，平均 1.2s）
+```
+
+**JSON 输出** 用于程序化分析：
+```bash
+npm run replay -- logs/session-xxx.jsonl --summary-json > stats.json
+```
+
+### 日志统计 API
+
+通过编程方式计算日志文件的统计信息：
+
+```typescript
+import { calculateLogStats } from 'claude-agent-sdk-ui';
+
+const stats = await calculateLogStats('logs/session-xxx.jsonl');
+
+console.log('会话时长：', stats.duration);
+console.log('总消息数：', stats.totalMessages);
+console.log('Token 使用：', stats.tokenUsage);
+console.log('工具统计：', stats.toolStats);
+```
+
 ---
 
 ## ⚙️ 配置选项
@@ -440,6 +491,140 @@ npm run demo:themes
 - `examples/theme-preview.tsx` - 主题预览与配置切换
 - `examples/theme-templates/minimal-theme.ts` - 最小主题模板（仅颜色和符号）
 - `examples/theme-templates/card-theme.tsx` - 卡片式布局模板
+
+---
+
+## 🎨 主题预览工具
+
+主题预览工具提供了一种交互式的方式来探索和测试主题：
+
+```bash
+npm run demo:themes
+```
+
+**功能**：
+- 🔄 实时切换主题（按 `t` 键）
+- 👁️ 动态切换显示选项：
+  - `1` - 切换时间戳显示
+  - `2` - 切换思考过程显示
+  - `3` - 切换工具详情显示
+  - `4` - 切换 Token 使用量显示
+- 📋 即时查看所有选项及其效果
+- 🎯 适合设计自定义主题
+
+**使用场景**：
+- 预览自定义主题的效果
+- 对比内置主题
+- 部署前测试主题配置
+- 向团队展示主题能力
+
+---
+
+## ⌨️ 命令模式
+
+命令模式在渲染过程中提供键盘快捷键和交互命令：
+
+### 使用命令覆盖层
+
+```typescript
+import { CommandOverlay } from 'claude-agent-sdk-ui';
+
+// 显示命令面板
+<CommandOverlay visible={showCommands} onClose={() => setShowCommands(false)} />
+```
+
+### 可用命令
+
+| 按键 | 命令 | 说明 |
+|-----|------|------|
+| `?` | 帮助 | 显示命令面板 |
+| `q` | 退出 | 退出应用 |
+| `t` | 主题 | 切换主题 |
+| `p` | 暂停 | 暂停流式渲染 |
+| `r` | 恢复 | 恢复流式渲染 |
+| `c` | 清屏 | 清除屏幕 |
+
+### 命令模式 Hook
+
+```typescript
+import { useCommandMode } from 'claude-agent-sdk-ui';
+
+function MyComponent() {
+  const {
+    currentCommand,
+    isCommandMode,
+    handleKeyPress,
+    registerCommand
+  } = useCommandMode();
+
+  // 注册自定义命令
+  registerCommand('s', () => {
+    console.log('保存命令触发');
+  });
+
+  return (
+    <Box onKeyPress={handleKeyPress}>
+      {isCommandMode && <Text>命令模式激活</Text>}
+    </Box>
+  );
+}
+```
+
+---
+
+## 📊 统计与性能追踪
+
+### 实时统计
+
+在流式渲染期间追踪统计信息：
+
+```typescript
+import { StatsTracker } from 'claude-agent-sdk-ui';
+
+const tracker = new StatsTracker();
+
+for await (const message of query({ prompt: '...' })) {
+  tracker.trackMessage(message);
+
+  // 获取当前统计
+  const stats = tracker.getStats();
+  console.log('已使用 Token：', stats.totalTokens);
+  console.log('工具调用次数：', stats.toolCallCount);
+}
+
+// 最终统计
+const finalStats = tracker.getFinalStats();
+```
+
+### 统计输出
+
+统计信息包括：
+- **消息指标**：总数、按类型分类
+- **Token 使用**：输入 token、输出 token、缓存命中
+- **工具执行**：每个工具的调用次数、成功率、耗时
+- **性能**：平均响应时间、总时长
+- **错误追踪**：失败次数、错误类型
+
+示例输出：
+```typescript
+{
+  totalMessages: 28,
+  messagesByType: {
+    assistant: 12,
+    toolResult: 8,
+    system: 8
+  },
+  tokenUsage: {
+    input: 8421,
+    output: 6813,
+    cacheHit: 2145
+  },
+  toolStats: {
+    Read: { calls: 5, success: 5, avgTime: 234 },
+    Grep: { calls: 3, success: 3, avgTime: 189 }
+  }
+}
+```
 
 ---
 

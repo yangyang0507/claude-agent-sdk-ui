@@ -373,6 +373,57 @@ await replayLog('logs/session-xxx.jsonl', {
 });
 ```
 
+### Replay Statistics & Summary
+
+The replay system now includes comprehensive statistics tracking:
+
+**Summary Output** includes:
+- 📊 Session duration and message counts
+- 🔧 Tool execution statistics (success/failure rates)
+- 💬 Token usage breakdown (input/output/cache)
+- ⏱️ Performance metrics and timing
+- 📈 Execution flow analysis
+
+**Example Summary**:
+```bash
+npm run replay -- logs/session-xxx.jsonl --summary
+```
+
+Output:
+```
+Session Summary
+===============
+Duration: 45.2s
+Messages: 28 total (12 assistant, 8 tool results, 8 system)
+Tokens: 15,234 total (8,421 input, 6,813 output)
+
+Tool Executions
+===============
+Read: 5 calls (100% success, avg 234ms)
+Grep: 3 calls (100% success, avg 189ms)
+Bash: 2 calls (100% success, avg 1.2s)
+```
+
+**JSON Output** for programmatic analysis:
+```bash
+npm run replay -- logs/session-xxx.jsonl --summary-json > stats.json
+```
+
+### Log Statistics API
+
+Calculate statistics from log files programmatically:
+
+```typescript
+import { calculateLogStats } from 'claude-agent-sdk-ui';
+
+const stats = await calculateLogStats('logs/session-xxx.jsonl');
+
+console.log('Session duration:', stats.duration);
+console.log('Total messages:', stats.totalMessages);
+console.log('Token usage:', stats.tokenUsage);
+console.log('Tool stats:', stats.toolStats);
+```
+
 ---
 
 ## ⚙️ Configuration Options
@@ -440,6 +491,140 @@ Example files:
 - `examples/theme-preview.tsx` - Interactive theme preview with toggles
 - `examples/theme-templates/minimal-theme.ts` - Minimal theme template (colors & symbols only)
 - `examples/theme-templates/card-theme.tsx` - Card-style layout template
+
+---
+
+## 🎨 Theme Preview Tool
+
+The theme preview tool provides an interactive way to explore and test themes before integration:
+
+```bash
+npm run demo:themes
+```
+
+**Features**:
+- 🔄 Switch between themes in real-time (press `t`)
+- 👁️ Toggle display options on the fly:
+  - `1` - Toggle timestamps
+  - `2` - Toggle thinking blocks
+  - `3` - Toggle tool details
+  - `4` - Toggle token usage
+- 📋 See all options and their effects instantly
+- 🎯 Perfect for designing custom themes
+
+**Use Cases**:
+- Preview how your custom theme looks
+- Compare built-in themes side by side
+- Test theme configurations before deployment
+- Demonstrate theme capabilities to stakeholders
+
+---
+
+## ⌨️ Command Mode
+
+Command mode provides keyboard shortcuts and interactive commands during rendering:
+
+### Using Command Overlay
+
+```typescript
+import { CommandOverlay } from 'claude-agent-sdk-ui';
+
+// Display command palette
+<CommandOverlay visible={showCommands} onClose={() => setShowCommands(false)} />
+```
+
+### Available Commands
+
+| Key | Command | Description |
+|-----|---------|-------------|
+| `?` | Help | Show command palette |
+| `q` | Quit | Exit application |
+| `t` | Theme | Switch theme |
+| `p` | Pause | Pause streaming |
+| `r` | Resume | Resume streaming |
+| `c` | Clear | Clear screen |
+
+### Command Mode Hook
+
+```typescript
+import { useCommandMode } from 'claude-agent-sdk-ui';
+
+function MyComponent() {
+  const {
+    currentCommand,
+    isCommandMode,
+    handleKeyPress,
+    registerCommand
+  } = useCommandMode();
+
+  // Register custom command
+  registerCommand('s', () => {
+    console.log('Save triggered');
+  });
+
+  return (
+    <Box onKeyPress={handleKeyPress}>
+      {isCommandMode && <Text>Command mode active</Text>}
+    </Box>
+  );
+}
+```
+
+---
+
+## 📊 Statistics & Performance Tracking
+
+### Real-time Statistics
+
+Track statistics during streaming:
+
+```typescript
+import { StatsTracker } from 'claude-agent-sdk-ui';
+
+const tracker = new StatsTracker();
+
+for await (const message of query({ prompt: '...' })) {
+  tracker.trackMessage(message);
+
+  // Get current stats
+  const stats = tracker.getStats();
+  console.log('Tokens used:', stats.totalTokens);
+  console.log('Tools called:', stats.toolCallCount);
+}
+
+// Final statistics
+const finalStats = tracker.getFinalStats();
+```
+
+### Statistics Output
+
+Statistics include:
+- **Message Metrics**: Total count, by type breakdown
+- **Token Usage**: Input tokens, output tokens, cache hits
+- **Tool Execution**: Calls per tool, success rates, timing
+- **Performance**: Average response time, total duration
+- **Error Tracking**: Failure count, error types
+
+Example output:
+```typescript
+{
+  totalMessages: 28,
+  messagesByType: {
+    assistant: 12,
+    toolResult: 8,
+    system: 8
+  },
+  tokenUsage: {
+    input: 8421,
+    output: 6813,
+    cacheHit: 2145
+  },
+  toolStats: {
+    Read: { calls: 5, success: 5, avgTime: 234 },
+    Grep: { calls: 3, success: 3, avgTime: 189 }
+  }
+}
+```
 
 ---
 

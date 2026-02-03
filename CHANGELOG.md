@@ -7,6 +7,141 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-02-03
+
+### ✨ New Features
+
+#### 📊 Replay Enhancements
+- **Log Statistics**: Added comprehensive log statistics tracking
+  - Session duration, message counts, token usage analysis
+  - Tool execution statistics with success/failure rates
+  - Performance metrics and timing information
+- **Replay Summary**: Added summary output for replay sessions
+  - `--summary` flag for human-readable summary
+  - `--summary-json` flag for JSON output
+  - Detailed session metrics and execution breakdown
+- **Stats Utilities**: New `utils/stats.ts` for statistics calculation
+
+#### 🎨 Theme System Enhancements
+- **Theme Preview**: Added interactive theme preview tool (`examples/theme-preview.tsx`)
+  - Live theme switching with keyboard controls
+  - Toggle display options in real-time
+  - Preview themes before integration
+- **Theme Templates**: Added ready-to-use theme templates
+  - `minimal-theme.ts`: Simple colors & symbols template
+  - `card-theme.tsx`: Card-style layout template
+  - Easy starting points for custom themes
+- **Custom Layout Documentation**: Added comprehensive guide (`docs/custom-layout-theme.md`)
+
+#### ⌨️ Command Mode
+- **Command Overlay**: New `CommandOverlay` component for keyboard shortcuts
+  - Visual command palette display
+  - Keyboard shortcuts reference
+  - Help and navigation hints
+- **useCommandMode Hook**: React hook for command mode state management
+  - Keyboard event handling
+  - Command registry
+  - State persistence
+
+#### 🌊 Streaming Improvements
+- **Stream Assembler**: New `StreamAssembler` class for managing streaming content
+  - Efficient content buffering and assembly
+  - Partial message handling
+  - State tracking and synchronization
+- **Stats Tracker**: Real-time statistics tracking during streaming
+  - Live token usage updates
+  - Tool execution monitoring
+  - Performance metrics collection
+
+#### 🧩 UI Components
+- **TimestampLine Component**: Display timestamps with consistent formatting
+  - Configurable format options
+  - Theme-aware styling
+  - Compact mode support
+
+### ✅ Testing & Quality
+
+#### 🧪 Test Coverage Expansion
+- **+1570 lines** of new test coverage across the codebase
+- **Components Testing**:
+  - `Spinner` component tests (42 new tests)
+  - `StatusLine` component tests (59 new tests)
+- **Hooks Testing**:
+  - `useTheme` hook tests (50 new tests)
+  - `useWaitingState` hook tests (67 new tests)
+- **Renderer Testing**:
+  - Standard renderer tests (210 new tests)
+  - Streaming renderer tests (112 new tests)
+- **Utilities Testing**:
+  - Logger utilities (152 new tests)
+  - Replay system (386 new tests)
+  - String utilities (123 new tests)
+  - Terminal utilities (250 new tests)
+  - Tool utilities (59 new tests)
+- **Theme Testing**:
+  - Theme system integration tests (21 new tests)
+- **Type Testing**:
+  - Message type validation tests (13 new tests)
+
+#### 📈 Coverage Improvements
+- Significantly improved edge case coverage
+- Enhanced error handling tests
+- Better integration test scenarios
+- Comprehensive unit test suite
+
+### 🔧 API Changes
+
+#### New Exports
+```typescript
+// Statistics utilities
+export { calculateLogStats } from './utils/stats';
+
+// New components
+export { CommandOverlay } from './components/ui/command-overlay';
+export { TimestampLine } from './components/ui/timestamp-line';
+
+// New hooks
+export { useCommandMode } from './hooks/use-command-mode';
+
+// Streaming utilities
+export { StreamAssembler } from './renderer/stream-assembler';
+export { StatsTracker } from './renderer/stats-tracker';
+```
+
+#### Replay CLI Enhancements
+```bash
+# New summary options
+npm run replay -- logs/session.jsonl --summary
+npm run replay -- logs/session.jsonl --summary-json
+
+# Enhanced with statistics output
+```
+
+### 📚 Documentation
+
+- Added Custom Layout Theme Guide (`docs/custom-layout-theme.md`)
+- Updated README with theme preview instructions
+- Added theme template examples documentation
+- Enhanced replay command documentation
+- Added command mode usage guide
+
+### 🛠️ Internal Improvements
+
+- Refactored streaming renderer for better performance
+- Improved options handling in renderer
+- Enhanced message routing logic
+- Better error handling in replay system
+- Optimized stats calculation algorithms
+
+### 🎯 Developer Experience
+
+- **Better Examples**: Added `theme-preview.tsx` for interactive exploration
+- **Template Starting Points**: Theme templates reduce custom theme development time
+- **Comprehensive Tests**: High test coverage ensures reliability
+- **Better Documentation**: Step-by-step guides for advanced features
+
+---
+
 ## [1.0.0] - 2025-01-16
 
 ### 🎉 Initial Release
@@ -260,6 +395,7 @@ await renderQuery(query({ prompt: 'Hello, Claude!' }));
 
 ## Version Links
 
+[1.1.0]: https://github.com/yangyang0507/claude-agent-sdk-ui/releases/tag/v1.1.0
 [1.0.0]: https://github.com/yangyang0507/claude-agent-sdk-ui/releases/tag/v1.0.0
 
 ---
