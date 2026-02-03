@@ -350,6 +350,12 @@ npm run replay -- logs/session-xxx.jsonl --streaming --show-thinking
 
 # Fixed delay mode, 500ms between messages
 npm run replay -- logs/session-xxx.jsonl --fixed-delay 500
+
+# Output summary after replay
+npm run replay -- logs/session-xxx.jsonl --summary
+
+# Output summary in JSON
+npm run replay -- logs/session-xxx.jsonl --summary-json
 ```
 
 Use in code:
@@ -362,7 +368,8 @@ await replayLog('logs/session-xxx.jsonl', {
   realtime: true,
   speed: 2,
   showThinking: true,
-  showToolDetails: true
+  showToolDetails: true,
+  summary: true
 });
 ```
 

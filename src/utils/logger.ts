@@ -7,6 +7,8 @@ import { mkdir, access } from 'node:fs/promises';
 import * as path from 'node:path';
 import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 
+const LOG_SCHEMA_VERSION = 1;
+
 /**
  * 日志配置选项
  */
@@ -42,6 +44,10 @@ type LogMessage = SDKMessage | InternalLogMessage;
  * 日志条目
  */
 export interface LogEntry {
+  /** 日志结构版本 */
+  schemaVersion: number;
+  /** 日志序号（包含内部事件） */
+  sequence: number;
   /** 时间戳 */
   timestamp: string;
 
@@ -80,6 +86,7 @@ export class SessionLogger {
   private logFilePath: string | null = null;
   private writeStream: fs.WriteStream | null = null;
   private messageCount = 0;
+  private entryCount = 0;
 
   constructor(options: LoggerOptions) {
     this.options = this.normalizeOptions(options);
@@ -129,6 +136,7 @@ export class SessionLogger {
 
     this.currentSessionId = sessionId;
     this.messageCount = 0;
+    this.entryCount = 0;
 
     // 确保日志目录存在
     await this.ensureLogDirectory();
@@ -149,6 +157,8 @@ export class SessionLogger {
 
     // 写入会话开始标记
     await this.writeEntry({
+      schemaVersion: LOG_SCHEMA_VERSION,
+      sequence: this.entryCount++,
       timestamp: new Date().toISOString(),
       sessionId,
       messageType: 'session_start',
@@ -204,6 +214,8 @@ export class SessionLogger {
 
     // 写入日志条目
     const entry: LogEntry = {
+      schemaVersion: LOG_SCHEMA_VERSION,
+      sequence: this.entryCount++,
       timestamp: new Date().toISOString(),
       sessionId,
       messageType: message.type,
@@ -231,6 +243,8 @@ export class SessionLogger {
     // 写入会话结束标记
     if (this.currentSessionId) {
       await this.writeEntry({
+        schemaVersion: LOG_SCHEMA_VERSION,
+        sequence: this.entryCount++,
         timestamp: new Date().toISOString(),
         sessionId: this.currentSessionId,
         messageType: 'session_end',
@@ -255,6 +269,7 @@ export class SessionLogger {
         this.logFilePath = null;
         this.currentSessionId = null;
         this.messageCount = 0;
+        this.entryCount = 0;
         resolve();
       });
     });

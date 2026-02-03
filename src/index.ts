@@ -60,6 +60,7 @@ export {
   summarizeToolInput,
   extractToolDetailLines,
 } from './utils/tools.js';
+export { analyzeLogEntries, formatSessionSummary } from './utils/stats.js';
 export { SessionLogger, createLogger } from './utils/logger.js';
 export { LogReplayer, createLogReplayer, replayLog } from './utils/replay.js';
 

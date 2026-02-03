@@ -350,6 +350,12 @@ npm run replay -- logs/session-xxx.jsonl --streaming --show-thinking
 
 # 固定延迟模式，每条消息间隔 500ms
 npm run replay -- logs/session-xxx.jsonl --fixed-delay 500
+
+# 重放结束后输出摘要
+npm run replay -- logs/session-xxx.jsonl --summary
+
+# 以 JSON 输出摘要
+npm run replay -- logs/session-xxx.jsonl --summary-json
 ```
 
 在代码中使用：
@@ -362,7 +368,8 @@ await replayLog('logs/session-xxx.jsonl', {
   realtime: true,
   speed: 2,
   showThinking: true,
-  showToolDetails: true
+  showToolDetails: true,
+  summary: true
 });
 ```
 

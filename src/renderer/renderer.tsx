@@ -5,7 +5,7 @@
 import React from 'react';
 import { render } from 'ink';
 import type { SDKAssistantMessage, SDKMessage } from '@anthropic-ai/claude-agent-sdk';
-import type { RendererOptions } from '../types/renderer.js';
+import type { RendererOptions, RendererState, SessionStats, ToolCallInfo } from '../types/renderer.js';
 import { ThemeProvider } from '../hooks/use-theme.js';
 import { useWaitingState } from '../hooks/use-waiting-state.js';
 import { useCommandMode } from '../hooks/use-command-mode.js';
@@ -20,6 +20,7 @@ import { CommandOverlay } from '../components/ui/command-overlay.js';
 import { TimestampLine } from '../components/ui/timestamp-line.js';
 import { formatTimestamp } from '../utils/time.js';
 import { StreamAssembler } from './stream-assembler.js';
+import { StatsTracker } from './stats-tracker.js';
 
 interface UIRendererAppProps {
   messages: SDKMessage[];
@@ -124,6 +125,7 @@ export class UIRenderer {
   private isStreaming: boolean = false;
   private streamAssembler = new StreamAssembler();
   private partialMessage: SDKAssistantMessage | null = null;
+  private statsTracker = new StatsTracker();
 
   constructor(options: RendererOptions = {}) {
     this.options = normalizeOptions(options);
@@ -191,6 +193,7 @@ export class UIRenderer {
       this.streamAssembler.reset();
     }
 
+    this.statsTracker.update(message);
     this.messages.push(message);
 
     // 从 system init 消息中提取 session ID
@@ -260,6 +263,7 @@ export class UIRenderer {
     this.isStreaming = false;
     this.partialMessage = null;
     this.streamAssembler.reset();
+    this.statsTracker.reset();
   }
 
   /**
@@ -281,6 +285,27 @@ export class UIRenderer {
    */
   getLogFilePath(): string | null {
     return this.logger?.getLogFilePath() ?? null;
+  }
+
+  /**
+   * 获取当前渲染器状态
+   */
+  getState(): RendererState {
+    return this.statsTracker.getState();
+  }
+
+  /**
+   * 获取会话统计信息
+   */
+  getStats(): SessionStats | null {
+    return this.statsTracker.getStats();
+  }
+
+  /**
+   * 获取工具调用信息
+   */
+  getToolCalls(): ToolCallInfo[] {
+    return this.statsTracker.getToolCalls();
   }
 }
 

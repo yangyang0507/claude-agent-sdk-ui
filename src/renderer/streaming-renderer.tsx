@@ -7,7 +7,7 @@
 import React from 'react';
 import { render } from 'ink';
 import type { SDKAssistantMessage, SDKMessage } from '@anthropic-ai/claude-agent-sdk';
-import type { RendererOptions } from '../types/renderer.js';
+import type { RendererOptions, RendererState, SessionStats, ToolCallInfo } from '../types/renderer.js';
 import { ThemeProvider } from '../hooks/use-theme.js';
 import { useWaitingState } from '../hooks/use-waiting-state.js';
 import { useCommandMode } from '../hooks/use-command-mode.js';
@@ -30,6 +30,7 @@ import { CommandOverlay } from '../components/ui/command-overlay.js';
 import { TimestampLine } from '../components/ui/timestamp-line.js';
 import { formatTimestamp } from '../utils/time.js';
 import { StreamAssembler } from './stream-assembler.js';
+import { StatsTracker } from './stats-tracker.js';
 
 interface StreamingRendererAppProps {
   messages: SDKMessage[];
@@ -224,6 +225,7 @@ export class StreamingRenderer {
   private partialMessage: SDKAssistantMessage | null = null;
   private streamingFromEvents: boolean = false;
   private usedStreamEventsForCurrentMessage: boolean = false;
+  private statsTracker = new StatsTracker();
 
   constructor(options: RendererOptions = {}) {
     // 使用流式渲染器的默认配置
@@ -308,6 +310,7 @@ export class StreamingRenderer {
       this.streamingFromEvents = false;
     }
 
+    this.statsTracker.update(message);
     this.messages.push(message);
 
     // 创建新数组以触发 React 重新渲染
@@ -368,6 +371,27 @@ export class StreamingRenderer {
   }
 
   /**
+   * 获取当前渲染器状态
+   */
+  getState(): RendererState {
+    return this.statsTracker.getState();
+  }
+
+  /**
+   * 获取会话统计信息
+   */
+  getStats(): SessionStats | null {
+    return this.statsTracker.getStats();
+  }
+
+  /**
+   * 获取工具调用信息
+   */
+  getToolCalls(): ToolCallInfo[] {
+    return this.statsTracker.getToolCalls();
+  }
+
+  /**
    * 清理资源
    */
   async cleanup(): Promise<void> {
@@ -383,6 +407,7 @@ export class StreamingRenderer {
     this.streamingFromEvents = false;
     this.usedStreamEventsForCurrentMessage = false;
     this.streamAssembler.reset();
+    this.statsTracker.reset();
   }
 
   /**

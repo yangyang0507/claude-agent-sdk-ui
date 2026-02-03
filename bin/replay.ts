@@ -16,6 +16,8 @@
  *   --show-tool-details     显示工具详情
  *   --filter-stream-events  过滤 stream_event 消息
  *   --fixed-delay <ms>      消息之间的固定延迟（毫秒）
+ *   --summary               重放结束后输出摘要
+ *   --summary-json          以 JSON 输出摘要
  *   --help, -h              显示帮助信息
  */
 
@@ -57,6 +59,12 @@ function showHelp() {
   --fixed-delay <ms>      设置消息之间的固定延迟（毫秒）
                           默认: 0
 
+  --summary               重放结束后输出摘要（文本）
+                          默认: 禁用
+
+  --summary-json          以 JSON 输出摘要（用于机器处理）
+                          默认: 禁用
+
   --help, -h              显示此帮助信息
 
 示例:
@@ -74,6 +82,12 @@ function showHelp() {
 
   # 固定延迟模式，每条消息间隔 500ms
   npm run replay -- logs/session-xxx.jsonl --fixed-delay 500
+
+  # 输出摘要（文本）
+  npm run replay -- logs/session-xxx.jsonl --summary
+
+  # 输出摘要（JSON）
+  npm run replay -- logs/session-xxx.jsonl --summary-json
 `);
 }
 
@@ -121,6 +135,14 @@ function parseArgs(): { logFile: string; options: ReplayOptions } | null {
         break;
       case '--fixed-delay':
         options.fixedDelay = parseInt(args[++i], 10);
+        break;
+      case '--summary':
+        options.summary = true;
+        options.summaryFormat = 'text';
+        break;
+      case '--summary-json':
+        options.summary = true;
+        options.summaryFormat = 'json';
         break;
       default:
         console.warn(`警告: 未知选项 ${arg}`);
