@@ -40,6 +40,16 @@ describe('sanitizeToolInput', () => {
     expect(result.username).toBe('user');
   });
 
+  it('应该大小写不敏感地隐藏字段', () => {
+    const input = {
+      Content: 'top secret',
+      other: 'value',
+    };
+    const result = sanitizeToolInput(input, { hiddenKeys: ['content'] });
+    expect(result.Content).toBe('[hidden]');
+    expect(result.other).toBe('value');
+  });
+
   it('应该支持自定义占位符', () => {
     const input = { content: 'test' };
     const result = sanitizeToolInput(input, { placeholder: '***' });
@@ -71,11 +81,14 @@ describe('sanitizeToolInput', () => {
 describe('formatToolLabel', () => {
   it('应该将已知工具名转换为标签', () => {
     expect(formatToolLabel('Bash')).toBe('EXECUTE');
+    expect(formatToolLabel('Execute')).toBe('EXECUTE');
+    expect(formatToolLabel('Shell')).toBe('EXECUTE');
     expect(formatToolLabel('Read')).toBe('READ');
     expect(formatToolLabel('Write')).toBe('WRITE');
     expect(formatToolLabel('Edit')).toBe('EDIT');
     expect(formatToolLabel('Grep')).toBe('SEARCH');
     expect(formatToolLabel('Glob')).toBe('GLOB');
+    expect(formatToolLabel('Plan')).toBe('PLAN');
   });
 
   it('应该将未知工具名转为大写', () => {
@@ -108,6 +121,14 @@ describe('summarizeToolInput', () => {
     expect(summarizeToolInput('Write', input)).toBe('/path/to/file.ts (append)');
   });
 
+  it('应该结合 file_path 和 impact', () => {
+    const input = {
+      file_path: '/path/to/file.ts',
+      impact: 'overwrite',
+    };
+    expect(summarizeToolInput('Write', input)).toBe('/path/to/file.ts (overwrite)');
+  });
+
   it('应该提取 url 字段', () => {
     const input = {
       url: 'https://example.com',
@@ -120,6 +141,27 @@ describe('summarizeToolInput', () => {
       query: 'search term',
     };
     expect(summarizeToolInput('Search', input)).toBe('search term');
+  });
+
+  it('应该支持 prompt/text 字段', () => {
+    expect(summarizeToolInput('Search', { prompt: 'hello' })).toBe('hello');
+    expect(summarizeToolInput('Search', { text: 'world' })).toBe('world');
+  });
+
+  it('应该回退到首个非摘要字段', () => {
+    const input = {
+      content: 'ignored',
+      retries: 3,
+      options: { a: 1 },
+    };
+    expect(summarizeToolInput('Tool', input)).toBe('retries: 3');
+  });
+
+  it('应该在仅有摘要字段时回退到首字段', () => {
+    const input = {
+      content: 'only content',
+    };
+    expect(summarizeToolInput('Tool', input)).toBe('content: only content');
   });
 
   it('应该返回完整的 command 值', () => {
@@ -165,6 +207,15 @@ describe('extractToolDetailLines', () => {
     const lines = extractToolDetailLines(input);
     expect(lines).toHaveLength(1);
     expect(lines[0]).toContain('options:');
+  });
+
+  it('应该大小写不敏感过滤摘要字段', () => {
+    const input = {
+      Content: 'hidden',
+      detail: 'value',
+    };
+    const lines = extractToolDetailLines(input);
+    expect(lines).toEqual(['detail: value']);
   });
 
   it('应该处理空输入', () => {

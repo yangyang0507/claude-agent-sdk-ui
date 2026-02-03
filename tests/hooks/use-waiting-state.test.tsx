@@ -25,6 +25,14 @@ describe('useWaitingState', () => {
 
       expect(lastFrame()).toBe('false:');
     });
+
+    it('空消息列表时即使 isStreaming 也不显示', () => {
+      const { lastFrame } = render(
+        <TestComponent messages={[]} options={{ isStreaming: true }} />
+      );
+
+      expect(lastFrame()).toBe('false:');
+    });
   });
 
   describe('Result 消息', () => {
@@ -54,6 +62,21 @@ describe('useWaitingState', () => {
       ];
 
       const { lastFrame } = render(<TestComponent messages={messages} />);
+
+      expect(lastFrame()).toBe('false:');
+    });
+
+    it('result 消息应优先于 isStreaming', () => {
+      const messages: SDKMessage[] = [
+        {
+          type: 'result',
+          subtype: 'success',
+        } as any,
+      ];
+
+      const { lastFrame } = render(
+        <TestComponent messages={messages} options={{ isStreaming: true }} />
+      );
 
       expect(lastFrame()).toBe('false:');
     });
@@ -216,6 +239,50 @@ describe('useWaitingState', () => {
     });
 
     it('StreamingRenderer 模式：typingEffect=false 时不显示', () => {
+      const messages: SDKMessage[] = [
+        {
+          type: 'assistant',
+          message: { content: [] },
+        } as any,
+      ];
+
+      const { lastFrame } = render(
+        <TestComponent
+          messages={messages}
+          options={{
+            currentStreamingIndex: 0,
+            streamingEnabled: true,
+            typingEffect: false,
+          }}
+        />
+      );
+
+      expect(lastFrame()).toBe('false:');
+    });
+
+    it('StreamingRenderer 模式：currentStreamingIndex 超出范围不显示', () => {
+      const messages: SDKMessage[] = [
+        {
+          type: 'assistant',
+          message: { content: [] },
+        } as any,
+      ];
+
+      const { lastFrame } = render(
+        <TestComponent
+          messages={messages}
+          options={{
+            currentStreamingIndex: 5,
+            streamingEnabled: true,
+            typingEffect: true,
+          }}
+        />
+      );
+
+      expect(lastFrame()).toBe('false:');
+    });
+
+    it('StreamingRenderer 模式：streamingEnabled=true 但 typingEffect=false 不显示', () => {
       const messages: SDKMessage[] = [
         {
           type: 'assistant',
