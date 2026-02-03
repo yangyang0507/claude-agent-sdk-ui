@@ -209,6 +209,19 @@ const compactClaudeCodeTheme = {
 };
 ```
 
+## 主题预览与模板
+
+想快速浏览不同主题的效果，可以运行交互式预览：
+
+```bash
+npm run demo:themes
+```
+
+如需快速开始自定义主题，可参考以下模板：
+
+- `examples/theme-templates/minimal-theme.ts` - 仅调整颜色与符号的最小主题模板
+- `examples/theme-templates/card-theme.tsx` - 卡片式布局主题模板
+
 ### Droid 卡片式布局
 
 ```typescript

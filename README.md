@@ -420,6 +420,9 @@ npm run demo
 
 # Streaming demo (real-time streaming with typing effect)
 npm run demo:streaming
+
+# Theme preview (interactive theme switcher)
+npm run demo:themes
 ```
 
 Example files:
@@ -427,6 +430,9 @@ Example files:
 - `examples/agent-integration/hello-streaming-demo.ts` - Simple streaming rendering with real-time updates
 - `examples/agent-integration/sample-demo.ts` - Complete streaming demo with logging and thinking display
 - `examples/agent-integration/original-demo.ts` - Raw Claude Agent SDK usage (for comparison)
+- `examples/theme-preview.tsx` - Interactive theme preview with toggles
+- `examples/theme-templates/minimal-theme.ts` - Minimal theme template (colors & symbols only)
+- `examples/theme-templates/card-theme.tsx` - Card-style layout template
 
 ---
 
