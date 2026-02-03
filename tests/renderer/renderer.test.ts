@@ -63,6 +63,12 @@ const createStreamEventWithSession = (eventType: string, sessionId = 'session-s'
     event: { type: eventType },
   }) as any;
 
+const createUser = (): SDKMessage =>
+  ({
+    type: 'user',
+    message: { content: [] },
+  }) as any;
+
 describe('UIRenderer', () => {
   beforeEach(() => {
     inkMocks.render.mockImplementation((element: any) => {
@@ -194,6 +200,20 @@ describe('UIRenderer', () => {
 
     await renderer.render(createAssistant());
     expect(inkMocks.lastRerenderElement.props.isStreaming).toBe(false);
+  });
+
+  it('maxMessages 应限制消息数量并保留 system init', async () => {
+    const renderer = new UIRenderer({ maxMessages: 2 });
+
+    const system = createSystemInit('session-limit');
+    await renderer.render(system);
+    await renderer.render(createAssistant());
+    await renderer.render(createUser());
+
+    const messages = renderer.getMessages();
+    expect(messages).toHaveLength(2);
+    expect(messages[0]).toBe(system);
+    expect(messages[1].type).toBe('user');
   });
 
   it('cleanup 应该释放资源并重置状态', async () => {

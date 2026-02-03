@@ -48,6 +48,9 @@ export interface RendererOptions {
   /** 工具结果的最大输出行数 */
   maxOutputLines?: number;
 
+  /** 最大渲染消息数（0 表示不限制） */
+  maxMessages?: number;
+
   /** 是否启用代码高亮 */
   codeHighlight?: boolean;
 

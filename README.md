@@ -481,6 +481,7 @@ interface RendererOptions {
   showThinking?: boolean;            // Show thinking process (default: false)
   showToolDetails?: boolean;         // Show tool details (default: true)
   showToolContent?: boolean;         // Show content field in tool params (default: false)
+  maxMessages?: number;              // Max messages to keep (0 = unlimited)
 
   // Format options
   compact?: boolean;                 // Compact mode (default: false)

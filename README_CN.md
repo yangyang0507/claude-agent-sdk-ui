@@ -481,6 +481,7 @@ interface RendererOptions {
   showThinking?: boolean;            // 显示思考过程（默认：false）
   showToolDetails?: boolean;         // 显示工具详情（默认：true）
   showToolContent?: boolean;         // 显示工具参数中的 content 字段（默认：false）
+  maxMessages?: number;              // 最大保留消息数（0 表示不限制）
 
   // 格式选项
   compact?: boolean;                 // 紧凑模式（默认：false）

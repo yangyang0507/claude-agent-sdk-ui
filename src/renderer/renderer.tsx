@@ -22,6 +22,34 @@ import { formatTimestamp } from '../utils/time.js';
 import { StreamAssembler } from './stream-assembler.js';
 import { StatsTracker } from './stats-tracker.js';
 
+function trimMessages(messages: SDKMessage[], maxMessages: number): SDKMessage[] {
+  if (!maxMessages || maxMessages <= 0) {
+    return messages;
+  }
+  if (messages.length <= maxMessages) {
+    return messages;
+  }
+
+  const tail = messages.slice(-maxMessages);
+
+  if (maxMessages > 1) {
+    const systemIndex = (() => {
+      for (let i = messages.length - 1; i >= 0; i -= 1) {
+        if (isSystemInitMessage(messages[i])) {
+          return i;
+        }
+      }
+      return -1;
+    })();
+
+    if (systemIndex !== -1 && systemIndex < messages.length - maxMessages) {
+      return [messages[systemIndex], ...messages.slice(-(maxMessages - 1))];
+    }
+  }
+
+  return tail;
+}
+
 function deriveStreamingFromEvent(eventType: string | undefined, current: boolean): boolean {
   if (!eventType) {
     return current;
@@ -216,6 +244,7 @@ export class UIRenderer {
 
     this.statsTracker.update(message);
     this.messages.push(message);
+    this.messages = trimMessages(this.messages, this.options.maxMessages);
 
     // 从 system init 消息中提取 session ID
     if (isSystemInitMessage(message) && 'session_id' in message && message.session_id) {

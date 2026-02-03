@@ -21,6 +21,7 @@ describe('normalizeOptions', () => {
     expect(options.showTokenUsage).toBe(false);
     expect(options.compact).toBe(false);
     expect(options.maxOutputLines).toBe(100);
+    expect(options.maxMessages).toBe(0);
     expect(options.codeHighlight).toBe(true);
     expect(options.streaming).toBe(false);
     expect(options.typingEffect).toBe(false);
@@ -88,6 +89,7 @@ describe('DEFAULT_RENDERER_OPTIONS', () => {
       'showTokenUsage',
       'compact',
       'maxOutputLines',
+      'maxMessages',
       'codeHighlight',
       'streaming',
       'typingEffect',

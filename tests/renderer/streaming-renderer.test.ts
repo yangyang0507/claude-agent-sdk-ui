@@ -98,6 +98,25 @@ describe('StreamingRenderer', () => {
     expect(inkMocks.lastRerenderElement.props.currentStreamingIndex).toBe(-1);
   });
 
+  it('maxMessages 应限制消息数量并保留 system init', async () => {
+    const renderer = new StreamingRenderer({ maxMessages: 2, typingEffect: false });
+
+    const system = {
+      type: 'system',
+      subtype: 'init',
+      session_id: 'session-limit',
+    } as SDKMessage;
+
+    await renderer.render(system);
+    await renderer.render(createAssistant());
+    await renderer.render(createUser());
+
+    const messages = renderer.getMessages();
+    expect(messages).toHaveLength(2);
+    expect(messages[0]).toBe(system);
+    expect(messages[1].type).toBe('user');
+  });
+
   it('新流式消息开始时应释放旧的等待 Promise', async () => {
     const renderer = new StreamingRenderer();
 
