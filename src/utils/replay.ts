@@ -10,16 +10,23 @@ import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import type { RendererOptions } from '../types/renderer.js';
 import { UIRenderer } from '../renderer/renderer.js';
 import { StreamingRenderer } from '../renderer/streaming-renderer.js';
+import { analyzeLogEntries, formatSessionSummary } from './stats.js';
 
 /**
  * 日志条目接口（与 logger.ts 中的定义一致）
  */
 interface LogEntry {
+  schemaVersion?: number;
+  sequence?: number;
   timestamp: string;
   sessionId: string;
   messageType: string;
-  message: SDKMessage;
+  message: SDKMessage | { type: 'internal' };
   metadata?: Record<string, unknown>;
+}
+
+function isInternalMessage(message: SDKMessage | { type: 'internal' }): message is { type: 'internal' } {
+  return (message as { type?: string }).type === 'internal';
 }
 
 /**
@@ -49,6 +56,18 @@ export interface ReplayOptions extends RendererOptions {
    * @default 0
    */
   fixedDelay?: number;
+
+  /**
+   * 是否在重放结束后输出摘要
+   * @default false
+   */
+  summary?: boolean;
+
+  /**
+   * 摘要输出格式
+   * @default 'text'
+   */
+  summaryFormat?: 'text' | 'json';
 }
 
 /**
@@ -127,6 +146,8 @@ export class LogReplayer {
       filterStreamEvents = false,
       fixedDelay = 0,
       streaming = false,
+      summary = false,
+      summaryFormat = 'text',
       ...rendererOptions
     } = options;
 
@@ -143,13 +164,16 @@ export class LogReplayer {
     // 过滤消息（如果需要）
     const messages = entries
       .filter((entry) => {
-        // 过滤 stream_event
-        if (filterStreamEvents && entry.message.type === 'stream_event') {
+        const message = entry.message;
+        if (!message || isInternalMessage(message)) {
+          return false;
+        }
+        if (filterStreamEvents && message.type === 'stream_event') {
           return false;
         }
         return true;
       })
-      .map((entry) => entry.message);
+      .map((entry) => entry.message as SDKMessage);
 
     console.log(`Replaying ${messages.length} messages...`);
 
@@ -167,6 +191,9 @@ export class LogReplayer {
       const entry = entries[i];
 
       // 如果过滤 stream_event，跳过这条消息
+      if (isInternalMessage(entry.message)) {
+        continue;
+      }
       if (filterStreamEvents && entry.message.type === 'stream_event') {
         continue;
       }
@@ -185,12 +212,21 @@ export class LogReplayer {
       }
 
       // 渲染消息
-      await this.renderer.render(entry.message);
+      await this.renderer.render(entry.message as SDKMessage);
 
       previousTimestamp = entry.timestamp;
     }
 
     console.log('\nReplay completed!');
+
+    if (summary) {
+      const analysis = analyzeLogEntries(entries);
+      const output =
+        summaryFormat === 'json'
+          ? JSON.stringify(analysis, null, 2)
+          : formatSessionSummary(analysis);
+      console.log(`\n${output}`);
+    }
   }
 
   /**

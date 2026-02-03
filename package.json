@@ -27,7 +27,8 @@
     "prepublishOnly": "npm run build",
     "replay": "node --import tsx/esm bin/replay.ts",
     "demo": "npx tsx --env-file=.env examples/agent-integration/hello-demo.ts",
-    "demo:streaming": "npx tsx --env-file=.env examples/agent-integration/hello-streaming-demo.ts"
+    "demo:streaming": "npx tsx --env-file=.env examples/agent-integration/hello-streaming-demo.ts",
+    "demo:themes": "npx tsx examples/theme-preview.tsx"
   },
   "bin": {
     "claude-agent-sdk-ui-replay": "./bin/replay.ts"

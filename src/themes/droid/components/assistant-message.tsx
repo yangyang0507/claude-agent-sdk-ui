@@ -18,7 +18,6 @@ import {
   summarizeToolInput,
   extractToolDetailLines,
 } from '../../../utils/tools.js';
-import { StatusLine } from '../../../components/ui/status-line.js';
 import type { ToolExecutionStateMap } from '../../../utils/tool-states.js';
 import { parseThinkingTags } from '../../../utils/string.js';
 
@@ -27,6 +26,7 @@ export interface AssistantMessageProps {
   showThinking?: boolean;
   showToolDetails?: boolean;
   showToolContent?: boolean;
+  codeHighlight?: boolean;
   toolStates?: ToolExecutionStateMap;
 }
 
@@ -49,6 +49,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
   showThinking = false,
   showToolDetails = true,
   showToolContent = false,
+  codeHighlight = true,
   toolStates = {},
 }) => {
   const theme = useTheme();
@@ -113,7 +114,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
                   <Box key={`${index}-${parsedIndex}`} flexDirection="row" marginBottom={1}>
                     <Text color={theme.colors.secondary}>{theme.symbols.aiPrefix}</Text>
                     <Box marginLeft={1} flexGrow={1}>
-                      <Markdown theme={theme} highlightCode={true} maxWidth={theme.layout.maxWidth ?? 120}>
+                      <Markdown theme={theme} highlightCode={codeHighlight} maxWidth={theme.layout.maxWidth ?? 120}>
                         {parsed.content}
                       </Markdown>
                     </Box>
@@ -138,7 +139,6 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
           const details = showToolDetails ? extractToolDetailLines(sanitizedInput) : [];
           const toolState = toolStates[item.id];
           const status = toolState?.status ?? 'pending';
-          const isError = status === 'error';
           const isPending = status === 'pending';
           const displayText = summary ? `${summary}` : '';
 

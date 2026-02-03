@@ -350,6 +350,12 @@ npm run replay -- logs/session-xxx.jsonl --streaming --show-thinking
 
 # Fixed delay mode, 500ms between messages
 npm run replay -- logs/session-xxx.jsonl --fixed-delay 500
+
+# Output summary after replay
+npm run replay -- logs/session-xxx.jsonl --summary
+
+# Output summary in JSON
+npm run replay -- logs/session-xxx.jsonl --summary-json
 ```
 
 Use in code:
@@ -362,7 +368,8 @@ await replayLog('logs/session-xxx.jsonl', {
   realtime: true,
   speed: 2,
   showThinking: true,
-  showToolDetails: true
+  showToolDetails: true,
+  summary: true
 });
 ```
 
@@ -420,6 +427,9 @@ npm run demo
 
 # Streaming demo (real-time streaming with typing effect)
 npm run demo:streaming
+
+# Theme preview (interactive theme switcher)
+npm run demo:themes
 ```
 
 Example files:
@@ -427,6 +437,9 @@ Example files:
 - `examples/agent-integration/hello-streaming-demo.ts` - Simple streaming rendering with real-time updates
 - `examples/agent-integration/sample-demo.ts` - Complete streaming demo with logging and thinking display
 - `examples/agent-integration/original-demo.ts` - Raw Claude Agent SDK usage (for comparison)
+- `examples/theme-preview.tsx` - Interactive theme preview with toggles
+- `examples/theme-templates/minimal-theme.ts` - Minimal theme template (colors & symbols only)
+- `examples/theme-templates/card-theme.tsx` - Card-style layout template
 
 ---
 

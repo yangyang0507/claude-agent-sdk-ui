@@ -350,6 +350,12 @@ npm run replay -- logs/session-xxx.jsonl --streaming --show-thinking
 
 # 固定延迟模式，每条消息间隔 500ms
 npm run replay -- logs/session-xxx.jsonl --fixed-delay 500
+
+# 重放结束后输出摘要
+npm run replay -- logs/session-xxx.jsonl --summary
+
+# 以 JSON 输出摘要
+npm run replay -- logs/session-xxx.jsonl --summary-json
 ```
 
 在代码中使用：
@@ -362,7 +368,8 @@ await replayLog('logs/session-xxx.jsonl', {
   realtime: true,
   speed: 2,
   showThinking: true,
-  showToolDetails: true
+  showToolDetails: true,
+  summary: true
 });
 ```
 
@@ -420,6 +427,9 @@ npm run demo
 
 # 流式渲染示例（实时流式渲染 with 打字效果）
 npm run demo:streaming
+
+# 主题预览（可交互切换）
+npm run demo:themes
 ```
 
 查看示例代码：
@@ -427,6 +437,9 @@ npm run demo:streaming
 - `examples/agent-integration/hello-streaming-demo.ts` - 简单的流式渲染，实时更新
 - `examples/agent-integration/sample-demo.ts` - 完整的流式渲染演示，包含日志记录和思考显示
 - `examples/agent-integration/original-demo.ts` - 原生 Claude Agent SDK 使用（对比参考）
+- `examples/theme-preview.tsx` - 主题预览与配置切换
+- `examples/theme-templates/minimal-theme.ts` - 最小主题模板（仅颜色和符号）
+- `examples/theme-templates/card-theme.tsx` - 卡片式布局模板
 
 ---
 

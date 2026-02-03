@@ -19,6 +19,8 @@ export interface FinalResultProps {
   showExecutionStats?: boolean;
   /** 是否显示 Token 使用统计（默认: false） */
   showTokenUsage?: boolean;
+  /** 是否启用代码高亮 */
+  codeHighlight?: boolean;
 }
 
 /**
@@ -36,6 +38,7 @@ export const FinalResult: React.FC<FinalResultProps> = ({
   showFinalResult = false,
   showExecutionStats = false,
   showTokenUsage = false,
+  codeHighlight = true,
 }) => {
   const theme = useTheme();
   const isSuccess = isResultSuccessMessage(message);
@@ -52,7 +55,7 @@ export const FinalResult: React.FC<FinalResultProps> = ({
           marginBottom={1}
           marginRight={1}
         >
-          <Markdown theme={theme} highlightCode={true} maxWidth={120}>
+          <Markdown theme={theme} highlightCode={codeHighlight} maxWidth={120}>
             {message.result}
           </Markdown>
         </CustomBox>

@@ -24,6 +24,7 @@ export const DEFAULT_RENDERER_OPTIONS: Required<RendererOptions> = {
   showThinking: false,
   showToolDetails: true,
   showToolContent: false,
+  enableHotkeys: true,
   maxWidth: 120,
   logging: { enabled: false },
 };
@@ -64,6 +65,7 @@ export function normalizeOptions(
     showThinking: options.showThinking ?? defaults.showThinking ?? DEFAULT_RENDERER_OPTIONS.showThinking,
     showToolDetails: options.showToolDetails ?? defaults.showToolDetails ?? DEFAULT_RENDERER_OPTIONS.showToolDetails,
     showToolContent: options.showToolContent ?? defaults.showToolContent ?? DEFAULT_RENDERER_OPTIONS.showToolContent,
+    enableHotkeys: options.enableHotkeys ?? defaults.enableHotkeys ?? DEFAULT_RENDERER_OPTIONS.enableHotkeys,
     maxWidth: options.maxWidth ?? defaults.maxWidth ?? DEFAULT_RENDERER_OPTIONS.maxWidth,
     logging: options.logging ?? defaults.logging ?? DEFAULT_RENDERER_OPTIONS.logging,
   };

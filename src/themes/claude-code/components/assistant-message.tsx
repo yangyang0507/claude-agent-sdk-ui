@@ -27,6 +27,7 @@ export interface AssistantMessageProps {
   showThinking?: boolean;
   showToolDetails?: boolean;
   showToolContent?: boolean;
+  codeHighlight?: boolean;
   toolStates?: ToolExecutionStateMap;
 }
 
@@ -49,6 +50,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
   showThinking = false,
   showToolDetails = true,
   showToolContent = false,
+  codeHighlight = true,
   toolStates = {},
 }) => {
   const theme = useTheme();
@@ -114,7 +116,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
                     key={`${index}-${parsedIndex}`}
                     marginBottom={1}
                     label={
-                      <Markdown theme={theme} highlightCode={true} maxWidth={theme.layout.maxWidth ?? 120}>
+                      <Markdown theme={theme} highlightCode={codeHighlight} maxWidth={theme.layout.maxWidth ?? 120}>
                         {parsed.content}
                       </Markdown>
                     }

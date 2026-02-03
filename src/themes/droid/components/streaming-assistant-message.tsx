@@ -8,7 +8,6 @@ import type { SDKAssistantMessage } from '@anthropic-ai/claude-agent-sdk';
 import { useTheme } from '../../../hooks/use-theme.js';
 import { StreamingText } from '../../../components/ui/streaming-text.js';
 import { Markdown } from '../../../components/ui/markdown.js';
-import { StatusLine } from '../../../components/ui/status-line.js';
 import { isTextContent, isThinkingContent, isToolUseContent, type MessageContent } from '../../../types/messages.js';
 import { sanitizeToolInput, summarizeToolInput, extractToolDetailLines } from '../../../utils/tools.js';
 import type { ToolExecutionStateMap } from '../../../utils/tool-states.js';
@@ -29,6 +28,16 @@ export interface StreamingAssistantMessageProps {
    * 是否显示工具调用详情
    */
   showToolDetails?: boolean;
+
+  /**
+   * 是否显示工具参数中的 content 字段
+   */
+  showToolContent?: boolean;
+
+  /**
+   * 是否启用代码高亮
+   */
+  codeHighlight?: boolean;
 
   /**
    * 打字机速度（毫秒）
@@ -68,9 +77,11 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
   message,
   showThinking = false,
   showToolDetails = true,
+  showToolContent = false,
   typingSpeed = 20,
   streamingEnabled = true,
   onStreamComplete,
+  codeHighlight = true,
   toolStates = {},
 }) => {
   const theme = useTheme();
@@ -194,7 +205,7 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
                       ) : (
                         <Markdown
                           theme={theme}
-                          highlightCode={true}
+                          highlightCode={codeHighlight}
                           maxWidth={theme.layout.maxWidth ?? 120}
                         >
                           {parsed.content}
@@ -218,13 +229,12 @@ export const StreamingAssistantMessage: React.FC<StreamingAssistantMessageProps>
           }
 
           const sanitizedInput = sanitizeToolInput(input, {
-            showContent: false,
+            showContent: showToolContent,
           });
           const summary = summarizeToolInput(name, sanitizedInput);
           const details = showToolDetails ? extractToolDetailLines(sanitizedInput) : [];
           const toolState = toolStates[item.id];
           const status = toolState?.status ?? 'pending';
-          const isError = status === 'error';
           const isPending = status === 'pending';
           const displayText = summary ? `${summary}` : '';
 
