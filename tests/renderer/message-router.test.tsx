@@ -11,19 +11,25 @@ vi.mock('../../src/components/proxy/system-message-proxy.js', () => ({
 }));
 
 vi.mock('../../src/components/proxy/assistant-message-proxy.js', () => ({
-  AssistantMessageProxy: ({ message }: any) => (
-    <>{`AssistantMessage:${message.message.content.length}`}</>
+  AssistantMessageProxy: (props: any) => (
+    <>
+      {`AssistantMessage:${props.message.message.content.length}:thinking=${props.showThinking}:details=${props.showToolDetails}:content=${props.showToolContent}:toolStates=${Object.keys(props.toolStates || {}).length}`}
+    </>
   ),
 }));
 
 vi.mock('../../src/components/proxy/tool-result-message-proxy.js', () => ({
-  ToolResultMessageProxy: ({ message }: any) => (
-    <>{`ToolResultMessage:${message.message.content.length}`}</>
+  ToolResultMessageProxy: (props: any) => (
+    <>
+      {`ToolResultMessage:${props.message.message.content.length}:max=${props.maxOutputLines}`}
+    </>
   ),
 }));
 
 vi.mock('../../src/components/proxy/final-result-proxy.js', () => ({
-  FinalResultProxy: ({ message }: any) => <>{`FinalResult:${message.type}`}</>,
+  FinalResultProxy: (props: any) => (
+    <>{`FinalResult:${props.message.type}:token=${props.showTokenUsage}`}</>
+  ),
 }));
 
 const createOptions = (overrides?: Partial<RendererOptions>): Required<RendererOptions> =>
@@ -98,7 +104,7 @@ describe('MessageRouter', () => {
         <MessageRouter message={message} options={options} toolStates={{}} />
       );
 
-      expect(lastFrame()).toBeDefined();
+      expect(lastFrame()).toContain('thinking=true');
     });
 
     it('应该传递 showToolDetails 选项', () => {
@@ -115,7 +121,24 @@ describe('MessageRouter', () => {
         <MessageRouter message={message} options={options} toolStates={{}} />
       );
 
-      expect(lastFrame()).toBeDefined();
+      expect(lastFrame()).toContain('details=false');
+    });
+
+    it('应该传递 showToolContent 选项', () => {
+      const message: SDKMessage = {
+        type: 'assistant',
+        message: {
+          content: [{ type: 'text', text: 'Test' }],
+        },
+      } as any;
+
+      const options = createOptions({ showToolContent: true });
+
+      const { lastFrame } = render(
+        <MessageRouter message={message} options={options} toolStates={{}} />
+      );
+
+      expect(lastFrame()).toContain('content=true');
     });
 
     it('应该传递 toolStates', () => {
@@ -135,7 +158,7 @@ describe('MessageRouter', () => {
         <MessageRouter message={message} options={createOptions()} toolStates={toolStates} />
       );
 
-      expect(lastFrame()).toBeDefined();
+      expect(lastFrame()).toContain('toolStates=2');
     });
   });
 
@@ -172,7 +195,7 @@ describe('MessageRouter', () => {
         <MessageRouter message={message} options={options} toolStates={{}} />
       );
 
-      expect(lastFrame()).toBeDefined();
+      expect(lastFrame()).toContain('max=50');
     });
 
     it('应该跳过带有 isReplay 标记的消息', () => {
@@ -203,7 +226,7 @@ describe('MessageRouter', () => {
         <MessageRouter message={message} options={createOptions()} toolStates={{}} />
       );
 
-      expect(lastFrame()).toContain('FinalResult:result');
+      expect(lastFrame()).toContain('FinalResult:result:token=false');
     });
 
     it('应该传递 showFinalResult 选项', () => {
@@ -248,7 +271,7 @@ describe('MessageRouter', () => {
         <MessageRouter message={message} options={options} toolStates={{}} />
       );
 
-      expect(lastFrame()).toBeDefined();
+      expect(lastFrame()).toContain('token=true');
     });
   });
 

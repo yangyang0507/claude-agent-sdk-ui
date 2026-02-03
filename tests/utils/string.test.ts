@@ -160,6 +160,15 @@ describe('truncateOutput', () => {
 
     expect(result).toContain('...');
   });
+
+  it('当 maxLines 很小应仅返回省略行', () => {
+    const lines = Array.from({ length: 5 }, (_, i) => `line ${i + 1}`);
+    const text = lines.join('\n');
+    const result = truncateOutput(text, 1);
+
+    const expected = ['... (truncated) ...', ...lines].join('\n');
+    expect(result).toBe(expected);
+  });
 });
 
 describe('indent', () => {
@@ -197,6 +206,120 @@ describe('removeEmptyLines', () => {
   it('应该保留没有空行的文本', () => {
     const text = 'line1\nline2\nline3';
     expect(removeEmptyLines(text)).toBe(text);
+  });
+});
+
+describe('wrapText', () => {
+  it('宽度足够时应保持原样', () => {
+    const text = 'hello';
+    expect(wrapText(text, 10)).toBe(text);
+  });
+
+  it('宽度较小时应换行', () => {
+    const result = wrapText('hello', 2);
+    expect(result).toContain('\n');
+  });
+});
+
+describe('ensureNewline', () => {
+  it('应在末尾追加换行', () => {
+    expect(ensureNewline('line')).toBe('line\n');
+  });
+
+  it('已有换行时不应重复追加', () => {
+    expect(ensureNewline('line\n')).toBe('line\n');
+  });
+});
+
+describe('trimNewline', () => {
+  it('应移除末尾换行', () => {
+    expect(trimNewline('line\n')).toBe('line');
+  });
+
+  it('应移除多个末尾换行', () => {
+    expect(trimNewline('line\n\n')).toBe('line');
+  });
+});
+
+describe('escapeHtml', () => {
+  it('应转义特殊字符', () => {
+    const result = escapeHtml(`&<>"'`);
+    expect(result).toBe('&amp;&lt;&gt;&quot;&#039;');
+  });
+
+  it('无特殊字符时保持原样', () => {
+    expect(escapeHtml('plain text')).toBe('plain text');
+  });
+});
+
+describe('detectLanguage', () => {
+  it('应识别代码块语言', () => {
+    expect(detectLanguage('```ts\nconst a = 1;\n```')).toBe('ts');
+  });
+
+  it('无语言标记时返回 undefined', () => {
+    expect(detectLanguage('```\nconst a = 1;\n```')).toBeUndefined();
+  });
+});
+
+describe('formatBytes', () => {
+  it('应处理 0 字节', () => {
+    expect(formatBytes(0)).toBe('0 B');
+  });
+
+  it('应格式化 KB/MB', () => {
+    expect(formatBytes(1024)).toBe('1.00 KB');
+    expect(formatBytes(1024 * 1024)).toBe('1.00 MB');
+  });
+
+  it('应格式化 GB/TB', () => {
+    expect(formatBytes(1024 * 1024 * 1024)).toBe('1.00 GB');
+    expect(formatBytes(1024 * 1024 * 1024 * 1024)).toBe('1.00 TB');
+  });
+});
+
+describe('pluralize', () => {
+  it('单数应使用 singular', () => {
+    expect(pluralize(1, 'item')).toBe('1 item');
+  });
+
+  it('复数默认加 s', () => {
+    expect(pluralize(2, 'item')).toBe('2 items');
+  });
+
+  it('复数支持自定义', () => {
+    expect(pluralize(2, 'person', 'people')).toBe('2 people');
+  });
+});
+
+describe('parseThinkingTags', () => {
+  it('应解析 thinking 标签并保留文本', () => {
+    const result = parseThinkingTags('Hello <thinking>foo</thinking> world');
+
+    expect(result).toHaveLength(3);
+    expect(result[0]).toEqual({ type: 'text', content: 'Hello ' });
+    expect(result[1]).toEqual({ type: 'thinking', content: 'foo' });
+    expect(result[2]).toEqual({ type: 'text', content: ' world' });
+  });
+
+  it('应忽略空的 thinking 标签', () => {
+    const result = parseThinkingTags('Start <thinking/> end');
+
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual({ type: 'text', content: 'Start ' });
+    expect(result[1]).toEqual({ type: 'text', content: ' end' });
+  });
+
+  it('无标签时返回原始文本', () => {
+    const result = parseThinkingTags('just text');
+    expect(result).toEqual([{ type: 'text', content: 'just text' }]);
+  });
+
+  it('支持自定义标签列表', () => {
+    const result = parseThinkingTags('Hi <custom>ok</custom>!', ['custom']);
+
+    expect(result).toHaveLength(3);
+    expect(result[1]).toEqual({ type: 'thinking', content: 'ok' });
   });
 });
 

@@ -47,6 +47,16 @@ describe('ThemeProvider', () => {
     expect(lastFrame()).toBe('droid');
   });
 
+  it('应该在主题名称无效时回退到默认主题', () => {
+    const { lastFrame } = render(
+      <ThemeProvider theme={'invalid' as any}>
+        <TestComponent />
+      </ThemeProvider>
+    );
+
+    expect(lastFrame()).toBe('claude-code');
+  });
+
   it('应该提供自定义主题对象', () => {
     const customTheme: Theme = {
       name: 'custom',
@@ -141,6 +151,17 @@ describe('useTheme', () => {
     expect(consoleWarnSpy).toHaveBeenCalledWith(
       expect.stringContaining('useTheme was called outside of ThemeProvider')
     );
+
+    process.env.NODE_ENV = originalEnv;
+  });
+
+  it('应该在生产环境不发出警告', () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+
+    render(<TestComponent />);
+
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
 
     process.env.NODE_ENV = originalEnv;
   });
@@ -253,5 +274,34 @@ describe('主题切换', () => {
     );
 
     expect(lastFrame()).toBe(droidTheme.colors.primary);
+  });
+});
+
+describe('useTheme 警告行为', () => {
+  it('开发环境下只应警告一次', async () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'development';
+
+    vi.resetModules();
+
+    const React = await import('react');
+    const { render } = await import('ink-testing-library');
+    const { Text } = await import('ink');
+    const { useTheme } = await import('../../src/hooks/use-theme.js');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const WarnComponent: React.FC = () => {
+      useTheme();
+      return <Text>ok</Text>;
+    };
+
+    render(<WarnComponent />);
+    render(<WarnComponent />);
+
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    warnSpy.mockRestore();
+    process.env.NODE_ENV = originalEnv;
   });
 });

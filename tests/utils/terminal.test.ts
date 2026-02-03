@@ -20,6 +20,10 @@ import {
   gradient,
   rainbow,
   createProgressBar,
+  write,
+  writeLine,
+  writeError,
+  writeErrorLine,
   sleep,
   getEnvConfig,
 } from '../../src/utils/terminal.js';
@@ -100,39 +104,229 @@ describe('isTTY', () => {
 
 describe('clearTerminal', () => {
   let writeSpy: any;
+  let originalIsTTY: any;
 
   beforeEach(() => {
     writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    originalIsTTY = process.stdout.isTTY;
   });
 
   afterEach(() => {
     writeSpy.mockRestore();
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: originalIsTTY,
+      configurable: true,
+    });
   });
 
   it('应该在 TTY 环境下清空终端', () => {
-    if (isTTY()) {
-      clearTerminal();
-      expect(writeSpy).toHaveBeenCalledWith('\x1B[2J\x1B[0f');
-    }
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: true,
+      configurable: true,
+    });
+
+    clearTerminal();
+    expect(writeSpy).toHaveBeenCalledWith('\x1B[2J\x1B[0f');
+  });
+
+  it('非 TTY 环境下不应输出', () => {
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: false,
+      configurable: true,
+    });
+
+    clearTerminal();
+    expect(writeSpy).not.toHaveBeenCalled();
   });
 });
 
 describe('moveCursor', () => {
   let writeSpy: any;
+  let originalIsTTY: any;
 
   beforeEach(() => {
     writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    originalIsTTY = process.stdout.isTTY;
   });
 
   afterEach(() => {
     writeSpy.mockRestore();
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: originalIsTTY,
+      configurable: true,
+    });
   });
 
   it('应该在 TTY 环境下移动光标', () => {
-    if (isTTY()) {
-      moveCursor(10, 5);
-      expect(writeSpy).toHaveBeenCalledWith('\x1B[5;10H');
-    }
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: true,
+      configurable: true,
+    });
+
+    moveCursor(10, 5);
+    expect(writeSpy).toHaveBeenCalledWith('\x1B[5;10H');
+  });
+
+  it('非 TTY 环境下不应输出', () => {
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: false,
+      configurable: true,
+    });
+
+    moveCursor(10, 5);
+    expect(writeSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('moveCursorToStart', () => {
+  let writeSpy: any;
+  let originalIsTTY: any;
+
+  beforeEach(() => {
+    writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    originalIsTTY = process.stdout.isTTY;
+  });
+
+  afterEach(() => {
+    writeSpy.mockRestore();
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: originalIsTTY,
+      configurable: true,
+    });
+  });
+
+  it('TTY 环境应输出控制序列', () => {
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: true,
+      configurable: true,
+    });
+
+    moveCursorToStart();
+    expect(writeSpy).toHaveBeenCalledWith('\x1B[0f');
+  });
+
+  it('非 TTY 环境不应输出', () => {
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: false,
+      configurable: true,
+    });
+
+    moveCursorToStart();
+    expect(writeSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('clearLine', () => {
+  let writeSpy: any;
+  let originalIsTTY: any;
+
+  beforeEach(() => {
+    writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    originalIsTTY = process.stdout.isTTY;
+  });
+
+  afterEach(() => {
+    writeSpy.mockRestore();
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: originalIsTTY,
+      configurable: true,
+    });
+  });
+
+  it('TTY 环境应清除当前行', () => {
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: true,
+      configurable: true,
+    });
+
+    clearLine();
+    expect(writeSpy).toHaveBeenCalledWith('\x1B[2K\r');
+  });
+
+  it('非 TTY 环境不应输出', () => {
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: false,
+      configurable: true,
+    });
+
+    clearLine();
+    expect(writeSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('hideCursor', () => {
+  let writeSpy: any;
+  let originalIsTTY: any;
+
+  beforeEach(() => {
+    writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    originalIsTTY = process.stdout.isTTY;
+  });
+
+  afterEach(() => {
+    writeSpy.mockRestore();
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: originalIsTTY,
+      configurable: true,
+    });
+  });
+
+  it('TTY 环境应隐藏光标', () => {
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: true,
+      configurable: true,
+    });
+
+    hideCursor();
+    expect(writeSpy).toHaveBeenCalledWith('\x1B[?25l');
+  });
+
+  it('非 TTY 环境不应输出', () => {
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: false,
+      configurable: true,
+    });
+
+    hideCursor();
+    expect(writeSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('showCursor', () => {
+  let writeSpy: any;
+  let originalIsTTY: any;
+
+  beforeEach(() => {
+    writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    originalIsTTY = process.stdout.isTTY;
+  });
+
+  afterEach(() => {
+    writeSpy.mockRestore();
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: originalIsTTY,
+      configurable: true,
+    });
+  });
+
+  it('TTY 环境应显示光标', () => {
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: true,
+      configurable: true,
+    });
+
+    showCursor();
+    expect(writeSpy).toHaveBeenCalledWith('\x1B[?25h');
+  });
+
+  it('非 TTY 环境不应输出', () => {
+    Object.defineProperty(process.stdout, 'isTTY', {
+      value: false,
+      configurable: true,
+    });
+
+    showCursor();
+    expect(writeSpy).not.toHaveBeenCalled();
   });
 });
 
@@ -312,6 +506,46 @@ describe('createProgressBar', () => {
   it('应该处理 total 为 0 的情况', () => {
     const result = createProgressBar(0, 0);
     expect(result).toContain('%');
+  });
+});
+
+describe('write/writeLine', () => {
+  it('write 应输出到 stdout', () => {
+    const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+    write('hello');
+
+    expect(writeSpy).toHaveBeenCalledWith('hello');
+    writeSpy.mockRestore();
+  });
+
+  it('writeLine 应追加换行', () => {
+    const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+    writeLine('line');
+
+    expect(writeSpy).toHaveBeenCalledWith('line\n');
+    writeSpy.mockRestore();
+  });
+});
+
+describe('writeError/writeErrorLine', () => {
+  it('writeError 应输出到 stderr', () => {
+    const writeSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    writeError('oops');
+
+    expect(writeSpy).toHaveBeenCalledWith('oops');
+    writeSpy.mockRestore();
+  });
+
+  it('writeErrorLine 应追加换行', () => {
+    const writeSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    writeErrorLine('oops');
+
+    expect(writeSpy).toHaveBeenCalledWith('oops\n');
+    writeSpy.mockRestore();
   });
 });
 
