@@ -1,10 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   getTheme,
   createTheme,
   isBuiltInTheme,
   claudeCodeTheme,
   droidTheme,
+  validateTheme,
+  MINIMAL_THEME_TEMPLATE,
 } from '../../src/themes/index.js';
 import type { Theme } from '../../src/types/theme.js';
 
@@ -76,6 +78,30 @@ describe('getTheme', () => {
     const theme = getTheme(customTheme);
     expect(theme).toBe(customTheme);
     expect(theme.name).toBe('custom');
+  });
+
+  it('应在开发环境下提示缺失字段', async () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'development';
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    vi.resetModules();
+    const { getTheme: freshGetTheme } = await import('../../src/themes/index.js');
+
+    freshGetTheme({
+      name: 'broken',
+      colors: {} as any,
+      symbols: {} as any,
+      borders: {} as any,
+      layout: {} as any,
+      components: {} as any,
+    });
+
+    expect(warnSpy).toHaveBeenCalled();
+
+    warnSpy.mockRestore();
+    process.env.NODE_ENV = originalEnv;
   });
 });
 
@@ -228,6 +254,35 @@ describe('createTheme', () => {
     expect(customTheme.symbols.success).toBe('S');
     expect(customTheme.borders.style).toBe('bold');
     expect(customTheme.layout.indent).toBe(8);
+  });
+});
+
+describe('validateTheme', () => {
+  it('完整主题应通过校验', () => {
+    const result = validateTheme(claudeCodeTheme);
+    expect(result.valid).toBe(true);
+    expect(result.missing).toHaveLength(0);
+  });
+
+  it('缺少字段应返回缺失列表', () => {
+    const result = validateTheme({
+      name: 'broken',
+      colors: { primary: '#000' } as any,
+      symbols: { success: '✓' } as any,
+      borders: { style: 'single' } as any,
+      layout: { indent: 2 } as any,
+      components: { assistantMessage: () => null } as any,
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.missing.length).toBeGreaterThan(0);
+  });
+});
+
+describe('MINIMAL_THEME_TEMPLATE', () => {
+  it('应该包含必需字段并通过校验', () => {
+    const result = validateTheme(MINIMAL_THEME_TEMPLATE);
+    expect(result.valid).toBe(true);
   });
 });
 

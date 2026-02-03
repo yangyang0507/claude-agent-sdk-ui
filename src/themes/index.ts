@@ -14,6 +14,138 @@ const builtInThemes: Record<BuiltInTheme, Theme> = {
   droid: droidTheme,
 };
 
+const REQUIRED_COLOR_KEYS: Array<keyof Theme['colors']> = [
+  'primary',
+  'secondary',
+  'success',
+  'error',
+  'warning',
+  'info',
+  'text',
+  'dim',
+];
+
+const REQUIRED_SYMBOL_KEYS: Array<keyof Theme['symbols']> = [
+  'success',
+  'error',
+  'warning',
+  'info',
+  'pending',
+  'spinner',
+  'bullet',
+  'arrow',
+];
+
+const REQUIRED_COMPONENT_KEYS: Array<keyof Theme['components']> = [
+  'assistantMessage',
+  'streamingAssistantMessage',
+  'toolResultMessage',
+  'systemMessage',
+  'finalResult',
+];
+
+let hasWarnedAboutInvalidTheme = false;
+
+export interface ThemeValidationResult {
+  valid: boolean;
+  missing: string[];
+}
+
+export function validateTheme(theme: Theme): ThemeValidationResult {
+  const missing: string[] = [];
+
+  if (!theme.colors) {
+    missing.push('colors');
+  } else {
+    for (const key of REQUIRED_COLOR_KEYS) {
+      if (!theme.colors[key]) {
+        missing.push(`colors.${key}`);
+      }
+    }
+  }
+
+  if (!theme.symbols) {
+    missing.push('symbols');
+  } else {
+    for (const key of REQUIRED_SYMBOL_KEYS) {
+      const value = theme.symbols[key];
+      if (key === 'spinner') {
+        if (!Array.isArray(value) || value.length === 0) {
+          missing.push('symbols.spinner');
+        }
+      } else if (!value) {
+        missing.push(`symbols.${key}`);
+      }
+    }
+  }
+
+  if (!theme.borders) {
+    missing.push('borders');
+  } else {
+    if (!theme.borders.style) missing.push('borders.style');
+    if (!theme.borders.color) missing.push('borders.color');
+  }
+
+  if (!theme.layout) {
+    missing.push('layout');
+  } else {
+    if (theme.layout.indent === undefined) missing.push('layout.indent');
+    if (theme.layout.lineSpacing === undefined) missing.push('layout.lineSpacing');
+  }
+
+  if (!theme.components) {
+    missing.push('components');
+  } else {
+    for (const key of REQUIRED_COMPONENT_KEYS) {
+      const value = theme.components[key];
+      if (typeof value !== 'function') {
+        missing.push(`components.${key}`);
+      }
+    }
+  }
+
+  return { valid: missing.length === 0, missing };
+}
+
+export const MINIMAL_THEME_TEMPLATE: Theme = {
+  name: 'custom-theme',
+  colors: {
+    primary: '#000000',
+    secondary: '#333333',
+    success: '#00AA00',
+    error: '#CC0000',
+    warning: '#CC8800',
+    info: '#0066CC',
+    text: '#000000',
+    dim: '#777777',
+  },
+  symbols: {
+    success: '✓',
+    error: '✗',
+    warning: '!',
+    info: 'i',
+    pending: '○',
+    spinner: ['-'],
+    bullet: '•',
+    arrow: '→',
+  },
+  borders: {
+    style: 'single',
+    color: '#777777',
+  },
+  layout: {
+    indent: 2,
+    lineSpacing: 1,
+  },
+  components: {
+    assistantMessage: () => null,
+    streamingAssistantMessage: () => null,
+    toolResultMessage: () => null,
+    systemMessage: () => null,
+    finalResult: () => null,
+  },
+};
+
 /**
  * 获取主题
  * @param input - 主题名称或主题对象
@@ -26,6 +158,18 @@ export function getTheme(input?: ThemeInput): Theme {
 
   if (typeof input === 'string') {
     return builtInThemes[input] || claudeCodeTheme;
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    const validation = validateTheme(input);
+    if (!validation.valid && !hasWarnedAboutInvalidTheme) {
+      console.warn(
+        `[claude-agent-sdk-ui] Theme is missing required fields: ${validation.missing.join(
+          ', '
+        )}`
+      );
+      hasWarnedAboutInvalidTheme = true;
+    }
   }
 
   return input;
