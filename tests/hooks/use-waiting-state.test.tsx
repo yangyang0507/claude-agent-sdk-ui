@@ -26,12 +26,12 @@ describe('useWaitingState', () => {
       expect(lastFrame()).toBe('false:');
     });
 
-    it('空消息列表时即使 isStreaming 也不显示', () => {
+    it('空消息列表时 isStreaming 应显示', () => {
       const { lastFrame } = render(
         <TestComponent messages={[]} options={{ isStreaming: true }} />
       );
 
-      expect(lastFrame()).toBe('false:');
+      expect(lastFrame()).toBe('true:Streaming...');
     });
   });
 

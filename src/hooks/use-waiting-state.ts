@@ -53,7 +53,9 @@ export function useWaitingState(
 
   return React.useMemo<WaitingState>(() => {
     if (messages.length === 0) {
-      return { show: false, message: '' };
+      return isStreaming
+        ? { show: true, message: 'Streaming...' }
+        : { show: false, message: '' };
     }
 
     const lastMessage = messages[messages.length - 1];
