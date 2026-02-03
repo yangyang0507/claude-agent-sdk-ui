@@ -11,7 +11,7 @@ import { useWaitingState } from '../hooks/use-waiting-state.js';
 import { useCommandMode } from '../hooks/use-command-mode.js';
 import { MessageRouter } from './message-router.js';
 import { normalizeOptions } from './options.js';
-import { deriveToolExecutionState } from '../utils/tool-states.js';
+import { deriveToolExecutionState, updateToolExecutionState, type ToolExecutionStateMap } from '../utils/tool-states.js';
 import { StatusLine } from '../components/ui/status-line.js';
 import { isAssistantMessage, isSystemInitMessage, isStreamEventMessage } from '../types/messages.js';
 import { SessionLogger } from '../utils/logger.js';
@@ -74,6 +74,7 @@ interface UIRendererAppProps {
   options: Required<RendererOptions>;
   isStreaming: boolean;
   partialMessage?: SDKAssistantMessage | null;
+  toolStates: ToolExecutionStateMap;
 }
 
 /**
@@ -84,6 +85,7 @@ const UIRendererApp: React.FC<UIRendererAppProps> = ({
   options,
   isStreaming,
   partialMessage,
+  toolStates,
 }) => {
   const commandState = useCommandMode(options);
   const effectiveOptions = commandState.options;
@@ -91,9 +93,9 @@ const UIRendererApp: React.FC<UIRendererAppProps> = ({
     () => (partialMessage ? [...messages, partialMessage] : messages),
     [messages, partialMessage]
   );
-  const toolStates = React.useMemo(
-    () => deriveToolExecutionState(displayMessages),
-    [displayMessages]
+  const effectiveToolStates = React.useMemo(
+    () => (partialMessage ? deriveToolExecutionState(displayMessages) : toolStates),
+    [displayMessages, partialMessage, toolStates]
   );
 
   const waitingState = useWaitingState(displayMessages, { isStreaming });
@@ -109,13 +111,13 @@ const UIRendererApp: React.FC<UIRendererAppProps> = ({
           return (
             <React.Fragment key={index}>
               {timestampLabel && <TimestampLine timestamp={timestampLabel} marginBottom={0} />}
-              <MessageRouter
-                message={message}
-                options={effectiveOptions}
-                toolStates={toolStates}
-                toolOutputPreviewLines={commandState.toolOutputPreviewLines}
-              />
-            </React.Fragment>
+                <MessageRouter
+                  message={message}
+                  options={effectiveOptions}
+                  toolStates={effectiveToolStates}
+                  toolOutputPreviewLines={commandState.toolOutputPreviewLines}
+                />
+              </React.Fragment>
           );
         })}
 
@@ -173,6 +175,7 @@ export class UIRenderer {
   private streamAssembler = new StreamAssembler();
   private partialMessage: SDKAssistantMessage | null = null;
   private statsTracker = new StatsTracker();
+  private toolStates: ToolExecutionStateMap = {};
 
   constructor(options: RendererOptions = {}) {
     this.options = normalizeOptions(options);
@@ -244,7 +247,9 @@ export class UIRenderer {
 
     this.statsTracker.update(message);
     this.messages.push(message);
-    this.messages = trimMessages(this.messages, this.options.maxMessages);
+    const trimmed = trimMessages(this.messages, this.options.maxMessages);
+    const trimmedChanged = trimmed !== this.messages;
+    this.messages = trimmed;
 
     // 从 system init 消息中提取 session ID
     if (isSystemInitMessage(message) && 'session_id' in message && message.session_id) {
@@ -254,6 +259,11 @@ export class UIRenderer {
     // 如果是 assistant 消息，结束流式状态
     if (isAssistantMessage(message)) {
       this.isStreaming = false;
+    }
+
+    updateToolExecutionState(this.toolStates, message);
+    if (trimmedChanged) {
+      this.toolStates = deriveToolExecutionState(this.messages);
     }
 
     // 记录日志
@@ -272,6 +282,7 @@ export class UIRenderer {
           options={this.options}
           isStreaming={this.isStreaming}
           partialMessage={this.partialMessage}
+          toolStates={this.toolStates}
         />
       );
     } else {
@@ -282,6 +293,7 @@ export class UIRenderer {
           options={this.options}
           isStreaming={this.isStreaming}
           partialMessage={this.partialMessage}
+          toolStates={this.toolStates}
         />
       );
     }
@@ -314,6 +326,7 @@ export class UIRenderer {
     this.partialMessage = null;
     this.streamAssembler.reset();
     this.statsTracker.reset();
+    this.toolStates = {};
   }
 
   /**

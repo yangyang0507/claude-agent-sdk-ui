@@ -24,7 +24,7 @@ import {
   isStreamEventMessage,
 } from '../types/messages.js';
 import { normalizeOptions, STREAMING_RENDERER_DEFAULTS } from './options.js';
-import { deriveToolExecutionState } from '../utils/tool-states.js';
+import { deriveToolExecutionState, updateToolExecutionState, type ToolExecutionStateMap } from '../utils/tool-states.js';
 import { StatusLine } from '../components/ui/status-line.js';
 import { CommandOverlay } from '../components/ui/command-overlay.js';
 import { TimestampLine } from '../components/ui/timestamp-line.js';
@@ -86,6 +86,7 @@ interface StreamingRendererAppProps {
   onStreamComplete: () => void;
   partialMessage?: SDKAssistantMessage | null;
   streamingFromEvents?: boolean;
+  toolStates: ToolExecutionStateMap;
 }
 
 /**
@@ -98,6 +99,7 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
   onStreamComplete,
   partialMessage,
   streamingFromEvents = false,
+  toolStates,
 }) => {
   const commandState = useCommandMode(options);
   const effectiveOptions = commandState.options;
@@ -105,9 +107,9 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
     () => (partialMessage ? [...messages, partialMessage] : messages),
     [messages, partialMessage]
   );
-  const toolStates = React.useMemo(
-    () => deriveToolExecutionState(displayMessages),
-    [displayMessages]
+  const effectiveToolStates = React.useMemo(
+    () => (partialMessage ? deriveToolExecutionState(displayMessages) : toolStates),
+    [displayMessages, partialMessage, toolStates]
   );
 
   const waitingState = useWaitingState(displayMessages, {
@@ -153,7 +155,7 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
                     typingSpeed={effectiveOptions.typingSpeed}
                     streamingEnabled={effectiveOptions.typingEffect}
                     onStreamComplete={onStreamComplete}
-                    toolStates={toolStates}
+                    toolStates={effectiveToolStates}
                   />
                 </React.Fragment>
               );
@@ -169,7 +171,7 @@ const StreamingRendererApp: React.FC<StreamingRendererAppProps> = ({
                   showToolContent={effectiveOptions.showToolContent}
                   codeHighlight={effectiveOptions.codeHighlight}
                   streamingEnabled={false}
-                  toolStates={toolStates}
+                  toolStates={effectiveToolStates}
                 />
               </React.Fragment>
             );
@@ -274,6 +276,7 @@ export class StreamingRenderer {
   private streamingFromEvents: boolean = false;
   private usedStreamEventsForCurrentMessage: boolean = false;
   private statsTracker = new StatsTracker();
+  private toolStates: ToolExecutionStateMap = {};
 
   constructor(options: RendererOptions = {}) {
     // 使用流式渲染器的默认配置
@@ -368,7 +371,9 @@ export class StreamingRenderer {
 
     this.statsTracker.update(message);
     this.messages.push(message);
-    this.messages = trimMessages(this.messages, this.options.maxMessages);
+    const trimmed = trimMessages(this.messages, this.options.maxMessages);
+    const trimmedChanged = trimmed !== this.messages;
+    this.messages = trimmed;
 
     // 创建新数组以触发 React 重新渲染
     const messagesCopy = [...this.messages];
@@ -390,6 +395,11 @@ export class StreamingRenderer {
       this.resolveStreamComplete();
     }
 
+    updateToolExecutionState(this.toolStates, message);
+    if (trimmedChanged) {
+      this.toolStates = deriveToolExecutionState(this.messages);
+    }
+
     const onStreamComplete = this.createStreamCompleteCallback(this.streamCompleteToken);
 
     // 如果还没有创建 app，创建一个
@@ -402,6 +412,7 @@ export class StreamingRenderer {
           onStreamComplete={onStreamComplete}
           partialMessage={this.partialMessage}
           streamingFromEvents={this.streamingFromEvents}
+          toolStates={this.toolStates}
         />
       );
     } else {
@@ -414,6 +425,7 @@ export class StreamingRenderer {
           onStreamComplete={onStreamComplete}
           partialMessage={this.partialMessage}
           streamingFromEvents={this.streamingFromEvents}
+          toolStates={this.toolStates}
         />
       );
     }
@@ -468,6 +480,7 @@ export class StreamingRenderer {
     this.usedStreamEventsForCurrentMessage = false;
     this.streamAssembler.reset();
     this.statsTracker.reset();
+    this.toolStates = {};
   }
 
   /**
