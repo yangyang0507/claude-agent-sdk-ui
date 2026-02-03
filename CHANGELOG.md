@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.1] - 2026-02-03
+
+### 🔧 Dependencies
+
+- **Updated peerDependencies**: Upgraded `@anthropic-ai/claude-agent-sdk` from `^0.1.14` to `^0.2.0`
+  - Supports latest Claude Agent SDK features
+  - Better compatibility with newer SDK versions
+  - Aligns with current SDK release (0.2.29)
+
+### 📚 Documentation
+
+- Updated README.md requirements section
+- Updated README_CN.md requirements section
+
+---
+
 ## [1.1.0] - 2026-02-03
 
 ### ✨ New Features
@@ -395,6 +411,7 @@ await renderQuery(query({ prompt: 'Hello, Claude!' }));
 
 ## Version Links
 
+[1.1.1]: https://github.com/yangyang0507/claude-agent-sdk-ui/releases/tag/v1.1.1
 [1.1.0]: https://github.com/yangyang0507/claude-agent-sdk-ui/releases/tag/v1.1.0
 [1.0.0]: https://github.com/yangyang0507/claude-agent-sdk-ui/releases/tag/v1.0.0
 

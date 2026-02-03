@@ -39,7 +39,7 @@ npm install claude-agent-sdk-ui @anthropic-ai/claude-agent-sdk
 
 **要求：**
 - Node.js >= 18.0.0
-- @anthropic-ai/claude-agent-sdk >= 0.1.14
+- @anthropic-ai/claude-agent-sdk >= 0.2.0
 
 ---
 
