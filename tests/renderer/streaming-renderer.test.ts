@@ -29,6 +29,12 @@ const createUser = (): SDKMessage =>
     message: { content: [] },
   }) as any;
 
+const createStreamEvent = (eventType: string): SDKMessage =>
+  ({
+    type: 'stream_event',
+    event: { type: eventType },
+  }) as any;
+
 describe('StreamingRenderer', () => {
   beforeEach(() => {
     inkMocks.render.mockImplementation((element: any) => {
@@ -77,6 +83,19 @@ describe('StreamingRenderer', () => {
 
     inkMocks.lastRerenderElement.props.onStreamComplete();
     await secondPromise;
+  });
+
+  it('stream_event 导致 streamingFromEvents 并抑制打字效果', async () => {
+    const renderer = new StreamingRenderer();
+
+    await renderer.render(createStreamEvent('content_block_start'));
+
+    expect(inkMocks.lastRenderElement.props.streamingFromEvents).toBe(true);
+    expect(inkMocks.lastRenderElement.props.currentStreamingIndex).toBe(-1);
+
+    await renderer.render(createAssistant());
+
+    expect(inkMocks.lastRerenderElement.props.currentStreamingIndex).toBe(-1);
   });
 
   it('禁用 streaming 时不应进入流式状态', async () => {

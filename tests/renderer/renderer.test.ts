@@ -56,6 +56,13 @@ const createStreamEvent = (eventType: string): SDKMessage =>
     event: { type: eventType },
   }) as any;
 
+const createStreamEventWithSession = (eventType: string, sessionId = 'session-s'): SDKMessage =>
+  ({
+    type: 'stream_event',
+    session_id: sessionId,
+    event: { type: eventType },
+  }) as any;
+
 describe('UIRenderer', () => {
   beforeEach(() => {
     inkMocks.render.mockImplementation((element: any) => {
@@ -137,6 +144,17 @@ describe('UIRenderer', () => {
     expect(logger.log).not.toHaveBeenCalled();
     expect(inkMocks.render).not.toHaveBeenCalled();
     expect(renderer.getMessages()).toHaveLength(0);
+  });
+
+  it('stream_event 携带 sessionId 时应渲染并进入流式状态', async () => {
+    const renderer = new UIRenderer({ logging: { enabled: true } });
+    const logger = loggerMocks.instances[0];
+
+    await renderer.render(createStreamEventWithSession('content_block_start'));
+
+    expect(logger.log).toHaveBeenCalledTimes(1);
+    expect(inkMocks.render).toHaveBeenCalledTimes(1);
+    expect(inkMocks.lastRenderElement.props.isStreaming).toBe(true);
   });
 
   it('应该处理 stream_event 并更新流式状态', async () => {

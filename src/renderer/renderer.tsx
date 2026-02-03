@@ -22,6 +22,25 @@ import { formatTimestamp } from '../utils/time.js';
 import { StreamAssembler } from './stream-assembler.js';
 import { StatsTracker } from './stats-tracker.js';
 
+function deriveStreamingFromEvent(eventType: string | undefined, current: boolean): boolean {
+  if (!eventType) {
+    return current;
+  }
+  if (eventType === 'message_stop') {
+    return false;
+  }
+  if (eventType === 'message_start') {
+    return true;
+  }
+  if (
+    eventType === 'message_delta' ||
+    eventType.startsWith('content_block')
+  ) {
+    return true;
+  }
+  return current;
+}
+
 interface UIRendererAppProps {
   messages: SDKMessage[];
   options: Required<RendererOptions>;
@@ -142,25 +161,22 @@ export class UIRenderer {
   async render(message: SDKMessage): Promise<void> {
     // 如果是 stream_event，更新流式状态但不添加到消息列表
     if (isStreamEventMessage(message)) {
-      // 如果还没有 sessionId，忽略 stream_event（不记录日志也不渲染）
-      if (!this.currentSessionId) {
-        return;
+      if (!this.currentSessionId && message.session_id) {
+        this.currentSessionId = message.session_id;
       }
 
       const eventType = message.event?.type;
 
-      // message_start: 开始流式传输
-      if (eventType === 'message_start') {
-        this.isStreaming = true;
-      }
-      // message_stop: 结束流式传输
-      else if (eventType === 'message_stop') {
-        this.isStreaming = false;
-      }
+      this.isStreaming = deriveStreamingFromEvent(eventType, this.isStreaming);
 
       const partial = this.streamAssembler.handleEvent(message);
       if (partial) {
         this.partialMessage = partial;
+      }
+
+      // 如果还没有 sessionId，忽略 stream_event（不记录日志也不渲染）
+      if (!this.currentSessionId) {
+        return;
       }
 
       // 记录日志但不添加到显示的消息列表

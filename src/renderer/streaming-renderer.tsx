@@ -32,6 +32,25 @@ import { formatTimestamp } from '../utils/time.js';
 import { StreamAssembler } from './stream-assembler.js';
 import { StatsTracker } from './stats-tracker.js';
 
+function deriveStreamingFromEvent(eventType: string | undefined, current: boolean): boolean {
+  if (!eventType) {
+    return current;
+  }
+  if (eventType === 'message_stop') {
+    return false;
+  }
+  if (eventType === 'message_start') {
+    return true;
+  }
+  if (
+    eventType === 'message_delta' ||
+    eventType.startsWith('content_block')
+  ) {
+    return true;
+  }
+  return current;
+}
+
 interface StreamingRendererAppProps {
   messages: SDKMessage[];
   options: Required<RendererOptions>;
@@ -258,12 +277,8 @@ export class StreamingRenderer {
     if (isStreamEventMessage(message)) {
       const eventType = message.event?.type;
 
-      if (eventType === 'message_start') {
-        this.streamingFromEvents = true;
-        this.usedStreamEventsForCurrentMessage = true;
-      } else if (eventType === 'message_stop') {
-        this.streamingFromEvents = false;
-      }
+      this.streamingFromEvents = deriveStreamingFromEvent(eventType, this.streamingFromEvents);
+      this.usedStreamEventsForCurrentMessage = true;
 
       const partial = this.streamAssembler.handleEvent(message);
       if (partial) {
