@@ -240,6 +240,7 @@ export class StreamingRenderer {
   private currentStreamingIndex: number = -1;
   private streamCompletePromise: Promise<void> | null = null;
   private streamCompleteResolve: (() => void) | null = null;
+  private streamCompleteToken = 0;
   private streamAssembler = new StreamAssembler();
   private partialMessage: SDKAssistantMessage | null = null;
   private streamingFromEvents: boolean = false;
@@ -263,12 +264,22 @@ export class StreamingRenderer {
   /**
    * 处理流式完成
    */
-  private handleStreamComplete = (): void => {
+  private resolveStreamComplete = (): void => {
     if (this.streamCompleteResolve) {
       this.streamCompleteResolve();
       this.streamCompleteResolve = null;
     }
+    this.streamCompletePromise = null;
   };
+
+  private createStreamCompleteCallback(token: number): () => void {
+    return () => {
+      if (token !== this.streamCompleteToken) {
+        return;
+      }
+      this.resolveStreamComplete();
+    };
+  }
 
   /**
    * 渲染单条消息
@@ -290,13 +301,15 @@ export class StreamingRenderer {
 
       const messagesCopy = [...this.messages];
 
+      const onStreamComplete = this.createStreamCompleteCallback(this.streamCompleteToken);
+
       if (!this.app) {
         this.app = render(
           <StreamingRendererApp
             messages={messagesCopy}
             options={this.options}
             currentStreamingIndex={this.currentStreamingIndex}
-            onStreamComplete={this.handleStreamComplete}
+            onStreamComplete={onStreamComplete}
             partialMessage={this.partialMessage}
             streamingFromEvents={this.streamingFromEvents}
           />
@@ -307,7 +320,7 @@ export class StreamingRenderer {
             messages={messagesCopy}
             options={this.options}
             currentStreamingIndex={this.currentStreamingIndex}
-            onStreamComplete={this.handleStreamComplete}
+            onStreamComplete={onStreamComplete}
             partialMessage={this.partialMessage}
             streamingFromEvents={this.streamingFromEvents}
           />
@@ -338,13 +351,17 @@ export class StreamingRenderer {
       this.options.typingEffect &&
       !hadStreamEvents
     ) {
+      this.resolveStreamComplete();
+      this.streamCompleteToken += 1;
       this.currentStreamingIndex = messagesCopy.length - 1;
       this.streamCompletePromise = this.createStreamCompletePromise();
     } else {
       // 非流式消息，不需要等待
       this.currentStreamingIndex = -1;
-      this.streamCompletePromise = null;
+      this.resolveStreamComplete();
     }
+
+    const onStreamComplete = this.createStreamCompleteCallback(this.streamCompleteToken);
 
     // 如果还没有创建 app，创建一个
     if (!this.app) {
@@ -353,7 +370,7 @@ export class StreamingRenderer {
           messages={messagesCopy}
           options={this.options}
           currentStreamingIndex={this.currentStreamingIndex}
-          onStreamComplete={this.handleStreamComplete}
+          onStreamComplete={onStreamComplete}
           partialMessage={this.partialMessage}
           streamingFromEvents={this.streamingFromEvents}
         />
@@ -365,7 +382,7 @@ export class StreamingRenderer {
           messages={messagesCopy}
           options={this.options}
           currentStreamingIndex={this.currentStreamingIndex}
-          onStreamComplete={this.handleStreamComplete}
+          onStreamComplete={onStreamComplete}
           partialMessage={this.partialMessage}
           streamingFromEvents={this.streamingFromEvents}
         />
@@ -416,8 +433,7 @@ export class StreamingRenderer {
     }
     this.messages = [];
     this.currentStreamingIndex = -1;
-    this.streamCompletePromise = null;
-    this.streamCompleteResolve = null;
+    this.resolveStreamComplete();
     this.partialMessage = null;
     this.streamingFromEvents = false;
     this.usedStreamEventsForCurrentMessage = false;

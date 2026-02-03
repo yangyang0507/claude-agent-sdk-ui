@@ -98,6 +98,49 @@ describe('StreamingRenderer', () => {
     expect(inkMocks.lastRerenderElement.props.currentStreamingIndex).toBe(-1);
   });
 
+  it('新流式消息开始时应释放旧的等待 Promise', async () => {
+    const renderer = new StreamingRenderer();
+
+    const firstPromise = renderer.render(createAssistant());
+    const secondPromise = renderer.render(createAssistant());
+
+    await expect(firstPromise).resolves.toBeUndefined();
+    await renderer.cleanup();
+    await expect(secondPromise).resolves.toBeUndefined();
+  });
+
+  it('旧回调不应结束新的流式消息', async () => {
+    const renderer = new StreamingRenderer();
+
+    const firstPromise = renderer.render(createAssistant());
+    const firstCallback = inkMocks.lastRenderElement.props.onStreamComplete;
+
+    const secondPromise = renderer.render(createAssistant());
+    const secondCallback = inkMocks.lastRerenderElement.props.onStreamComplete;
+
+    let secondResolved = false;
+    secondPromise.then(() => {
+      secondResolved = true;
+    });
+
+    firstCallback();
+    await Promise.resolve();
+    expect(secondResolved).toBe(false);
+
+    secondCallback();
+    await secondPromise;
+    await firstPromise;
+  });
+
+  it('cleanup 应释放等待中的流式 Promise', async () => {
+    const renderer = new StreamingRenderer();
+
+    const pending = renderer.render(createAssistant());
+    await renderer.cleanup();
+
+    await expect(pending).resolves.toBeUndefined();
+  });
+
   it('禁用 streaming 时不应进入流式状态', async () => {
     const renderer = new StreamingRenderer({ streaming: false });
 
